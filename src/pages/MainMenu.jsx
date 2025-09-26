@@ -5,7 +5,7 @@ export default function MainMenu() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-black text-green-400 p-4  ">
       {/* Logo placeholder */}
       <div className="mb-8 ">
-        <div className="w-35 h-35  flex items-center justify-center">
+        <div className="w-33 h-33 flex items-center justify-center">
           <img src="/Logo.png" alt="Logo" />
         </div>
       </div>
