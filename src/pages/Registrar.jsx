@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-export default function Registrar() {
+import { HeaderModal } from "./HeaderModal";
+import { BotonesAccion } from "./BotonesAccion";
+export default function Registrar({ onClose }) {
   const [form, setForm] = useState({
     nombre: "",
     correo: "",
@@ -9,69 +10,139 @@ export default function Registrar() {
     servicio: "",
     contrasena: "",
   });
+  const [result, setResult] = useState("");
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm((s) => ({ ...s, [name]: value }));
   };
 
+
   const handleSubmit = (e) => {
     e.preventDefault();
     // placeholder: aquí enviarías el formulario
     console.log("submit", form);
   };
-  const navigate = useNavigate();
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-black p-6">
-      <div className="w-full max-w-md border-4 border-green-600 rounded-lg p-6" style={{ boxShadow: '0 0 0 6px #071005 inset' }}>
-        {/* Logo top-right like mockup */}
-        <div className="flex justify-end mb-2">
-          <div className="w-12 h-12">
-            <img src="/Logo.png" alt="Logo" className="w-full h-full object-contain" />
-          </div>
+  const handleRegistrar = (e) => {
+    e.preventDefault();
+    const { nombre, telefono } = form;
+    if (!nombre || !telefono) {
+      setResult("Ingrese nombre y teléfono.");
+      return;
+    }
+    setResult(`Registrado: ${nombre} (${telefono}) — simulación.`);
+  };
+
+  const content = (
+    <div className="w-full max-w-2xl rounded-lg p-4 bg-black text-white">
+      <HeaderModal texto="REGISTRAR" tamano={24} />
+
+      <form
+        formId="form-registrar"
+        onSubmit={handleRegistrar}
+        className="bg-black border-2 border-green-500 rounded-md p-3"
+      >
+        <label className="text-green-300 block mb-2">NOMBRE:</label>
+        <input
+          name="nombre"
+          value={form.nombre}
+          onChange={handleChange}
+          className="w-full bg-black border-2 border-green-700 text-white px-2 py-1 mb-3"
+          placeholder="Nombre"
+        />
+
+        <label className="text-green-300 block mb-2">CORREO:</label>
+        <input
+          name="correo"
+          value={form.correo}
+          onChange={handleChange}
+          className="w-full bg-black border-2 border-green-700 text-white px-2 py-1 mb-3"
+          placeholder="Correo"
+        />
+
+        <label className="text-green-300 block mb-2">TELEFONO:</label>
+        <input
+          name="telefono"
+          value={form.telefono}
+          onChange={handleChange}
+          className="w-full bg-black border-2 border-green-700 text-white px-2 py-1 mb-3"
+          placeholder="Teléfono"
+        />
+
+        <label className="text-green-300 block mb-2">SERVICIO:</label>
+        <select
+          name="servicio"
+          value={form.servicio}
+          onChange={handleChange}
+          className="w-full bg-black border-2 border-green-700 text-white px-2 py-1 mb-3"
+        >
+          <option value="">Seleccione servicio</option>
+          <option value="s1">Servicio 1</option>
+          <option value="s2">Servicio 2</option>
+        </select>
+
+        <div className="mb-3">
+          <label className="text-green-300 flex items-center justify-between mb-1">
+            <span>CONTRASEÑA:</span>
+            <div className="relative inline-block group">
+              <button
+                type="button"
+                aria-describedby="pwdInfo"
+                className="ml-2 text-green-300 hover:text-white focus:outline-none"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                  aria-hidden="true"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M18 10A8 8 0 11 2 10a8 8 0 0116 0zm-9-1a1 1 0 102 0v5a1 1 0 11-2 0V9zm1-4a1.25 1.25 0 100 2.5A1.25 1.25 0 0010 5z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </button>
+              <div
+                id="pwdInfo"
+                role="status"
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-14 right-0 w-64 bg-black border-l-2 border-green-600 text-sm text-green-200 p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50"
+              >
+                Solicitar crear una contraseña al cliente: la necesitará al
+                momento de la entrega del equipo.
+              </div>
+            </div>
+          </label>
+
+          <input
+            type="password"
+            name="contrasena"
+            value={form.contrasena}
+            onChange={handleChange}
+            className="w-full bg-black border-2 border-green-700 text-white px-2 py-1"
+            placeholder="Contraseña"
+          />
         </div>
 
-        <h2 className="text-2xl text-white font-bold mb-4">REGISTRAR</h2>
+        {result && <div className="text-green-200 mb-3">{result}</div>}
+      </form>
+      <BotonesAccion
+        formId="form-registrar"
+        onClose={onClose}
+        submitText="REGISTRAR"
+      />
+    </div>
+  );
 
-        <form onSubmit={handleSubmit} className="bg-black border-2 border-green-500 rounded-md p-4">
-          <div className="space-y-3">
-            <label className="flex items-center justify-between text-green-300">
-              <span>NOMBRE:</span>
-              <input name="nombre" value={form.nombre} onChange={handleChange} className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56" />
-            </label>
-
-            <label className="flex items-center justify-between text-green-300">
-              <span>CORREO:</span>
-              <input name="correo" value={form.correo} onChange={handleChange} className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56" />
-            </label>
-
-            <label className="flex items-center justify-between text-green-300">
-              <span>TELEFONO:</span>
-              <input name="telefono" value={form.telefono} onChange={handleChange} className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56" />
-            </label>
-
-            <label className="flex items-center justify-between text-green-300">
-              <span>SERVICIO:</span>
-              <select name="servicio" value={form.servicio} onChange={handleChange} className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56">
-                <option value="">Seleccione servicio</option>
-                <option value="s1">Servicio 1</option>
-                <option value="s2">Servicio 2</option>
-              </select>
-            </label>
-
-            <label className="flex items-center justify-between text-green-300">
-              <span>CONTRASEÑA:</span>
-              <input type="password" name="contrasena" value={form.contrasena} onChange={handleChange} className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56" />
-            </label>
-          </div>
-
-          <div className="flex justify-between mt-6">
-            <button type="button" onClick={() => navigate('/')} className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full">CANCELAR</button>
-            <button type="submit" className="bg-green-700 text-white border-2 border-green-500 px-4 py-1 rounded-full">REGISTRAR</button>
-          </div>
-        </form>
-      </div>
+  // Si el padre pasa onClose, no renderices overlay aquí
+  if (typeof onClose === "function") return content;
+  return (
+    <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50 p-4">
+      {content}
     </div>
   );
 }

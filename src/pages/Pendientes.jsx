@@ -1,43 +1,64 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-export default function Pendientes() {
+import { HeaderModal } from "./HeaderModal";
+export default function Pendientes({ onClose }) {
+  const [items, setItems] = useState([
+    { id: 1, folio: "A001", status: "Pendiente" },
+    { id: 2, folio: "A002", status: "Pendiente" },
+  ]);
   const navigate = useNavigate();
 
-  // sample data
-  const rows = [
-    { folio: "123456", equipo: "LAP HP", servicio: "LIMPIEZA", estatus: "REVISADO" },
-  ];
+  const handleClose = () => {
+    if (typeof onClose === "function") onClose();
+    else navigate("/");
+  };
 
+  const markDone = (id) => {
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, status: "Entregado" } : i))
+    );
+  };
+
+  const content = (
+    <div className="w-full max-w-2xl rounded-lg p-6 bg-black text-white">
+      <HeaderModal texto="PENDIENTES" tamano={24} />
+
+      <div className="bg-black border-2 border-green-500 rounded-md p-3">
+        {items.map((it) => (
+          <div key={it.id} className="flex items-center justify-between mb-2">
+            <div>
+              <div className="text-white font-medium">{it.folio}</div>
+              <div className="text-green-200 text-sm">{it.status}</div>
+            </div>
+            <div>
+              {it.status !== "Entregado" && (
+                <button
+                  onClick={() => markDone(it.id)}
+                  className="bg-green-700 text-white px-3 py-1 rounded-full"
+                >
+                  MARCAR
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={handleClose}
+          className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
+        >
+          CERRAR
+        </button>
+      </div>
+    </div>
+  );
+
+  if (typeof onClose === "function") return content;
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50 p-4">
-      <div className="w-full max-w-md border-4 border-green-600 rounded-lg p-4 bg-black text-white">
-        <h2 className="text-2xl font-bold mb-3">PENDIENTES</h2>
-
-        <div className="bg-black border-2 border-green-500 rounded-md p-3">
-          <div className="border-2 border-green-700 p-2">
-            <div className="grid grid-cols-4 text-green-300 text-sm border-b border-green-700">
-              <div className="p-2">FOLIO</div>
-              <div className="p-2">EQUIPO</div>
-              <div className="p-2">SERVICIO</div>
-              <div className="p-2">ESTATUS</div>
-            </div>
-            <div className="h-48 overflow-y-auto">
-              {rows.map((r, i) => (
-                <div key={i} className="grid grid-cols-4 text-white text-sm border-b border-green-900">
-                  <div className="p-2">{r.folio}</div>
-                  <div className="p-2">{r.equipo}</div>
-                  <div className="p-2">{r.servicio}</div>
-                  <div className="p-2">{r.estatus}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="flex justify-center mt-4">
-            <button onClick={() => navigate('/')} className="bg-red-800 text-white border-2 border-red-600 px-6 py-1 rounded-full">SALIR</button>
-          </div>
-        </div>
-      </div>
+      {content}
     </div>
   );
 }
