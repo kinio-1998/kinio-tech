@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-export const BotonesAccion = ({ formId, onClose, submitText }) => {
+export const BotonesAccion = ({ id, onClose, submitText }) => {
   const navigate = useNavigate();
 
   const handleClose = () => {
@@ -23,7 +23,7 @@ export const BotonesAccion = ({ formId, onClose, submitText }) => {
 
       <button
         type="submit"
-        form={formId} // 👉 aquí se hace el submit del form del padre
+        form={id} // 👉 aquí se hace el submit del form del padre
         className="bg-green-700 text-white border-2 border-green-500 px-4 py-1 rounded-full"
       >
         {submitText}

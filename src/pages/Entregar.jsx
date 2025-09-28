@@ -46,7 +46,7 @@ export default function Entregar({ onClose }) {
       </form>
 
       <BotonesAccion
-        formId="form-entregar"
+        id="form-entregar"
         onClose={onClose}
         submitText="ENTREGAR"
       />

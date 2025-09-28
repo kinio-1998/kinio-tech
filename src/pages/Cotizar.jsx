@@ -2,7 +2,10 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { HeaderModal } from "./HeaderModal";
 import { BotonesAccion } from "./BotonesAccion";
+
 export default function Cotizar({ onClose }) {
+  const [statusMsg, setStatusMsg] = useState(""); // mensaje de resultado
+  const [result, setResult] = useState(null); // null = formulario, "success" o "error"
   const [form, setForm] = useState({
     nombre: "",
     correo: "",
@@ -19,13 +22,51 @@ export default function Cotizar({ onClose }) {
     setForm((s) => ({ ...s, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // envía form + items al backend en tu implementación real
-    console.log("cotizar", { form, items });
+    setStatusMsg("Enviando cotización...");
+
+    try {
+      const res = await fetch("http://localhost:8000/cotizar", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          client_name: form.nombre,
+          client_email: form.correo,
+          client_phone: form.telefono,
+          service_type: form.servicio,
+          items: items.map((it) => ({
+            description: it.concepto,
+            qty: it.cantidad,
+            price: Number(it.precio),
+          })),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (res.ok) {
+        setResult("success");
+        setStatusMsg("✅ Cotización enviada correctamente!");
+        console.log("PDF generado en:", data.pdf_path);
+
+        // limpiar formulario
+        setForm({ nombre: "", correo: "", telefono: "", servicio: "" });
+        setItems([{ id: Date.now(), concepto: "", cantidad: 1, precio: "" }]);
+      } else {
+        setResult("error");
+        setStatusMsg("❌ Error al enviar la cotización: " + data.detail);
+      }
+    } catch (err) {
+      console.error(err);
+      setResult("error");
+      setStatusMsg("❌ Error al enviar la cotización: " + err.message);
+    }
   };
 
-  // filas del grid: añadir, eliminar y actualizar
+  // filas del grid
   const addRow = () => {
     setItems((s) => [
       ...s,
@@ -50,43 +91,53 @@ export default function Cotizar({ onClose }) {
     0
   );
 
-  const content = (
-    // usar max-w-2xl para permitir más ancho dentro del wrapper mayor del padre
+  // Vista del formulario
+  const formContent = (
     <div className="w-full max-w-2xl rounded-lg p-6 bg-black text-white">
       <HeaderModal texto="COTIZAR" tamano={24} />
       <form
-        formId="form-cotizar"
+        id="form-cotizar"
         onSubmit={handleSubmit}
         className="bg-black border-2 border-green-500 rounded-md p-4"
       >
+        {/* datos cliente */}
         <div className="space-y-3 mb-3">
           <label className="flex items-center justify-between text-green-300">
             <span>NOMBRE:</span>
             <input
+              type="text"
               name="nombre"
               value={form.nombre}
               onChange={handleChange}
               className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56"
+              required
             />
           </label>
 
           <label className="flex items-center justify-between text-green-300">
             <span>CORREO:</span>
             <input
+              type="email"
               name="correo"
               value={form.correo}
               onChange={handleChange}
               className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56"
+              required
             />
           </label>
 
           <label className="flex items-center justify-between text-green-300">
-            <span>TELEFONO:</span>
+            <span>TELÉFONO:</span>
             <input
+              type="tel"
               name="telefono"
               value={form.telefono}
               onChange={handleChange}
               className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56"
+              required
+              minLength={10}
+              maxLength={10}
+              pattern="\d{10}"
             />
           </label>
 
@@ -97,15 +148,23 @@ export default function Cotizar({ onClose }) {
               value={form.servicio}
               onChange={handleChange}
               className="ml-2 bg-black border-2 border-green-700 text-white px-2 py-1 w-56"
+              required
             >
               <option value="">Seleccione servicio</option>
-              <option value="s1">Servicio 1</option>
-              <option value="s2">Servicio 2</option>
+              <option value="1">Armado De PC</option>
+              <option value="2">Cambio de Pasta</option>
+              <option value="3">Diagnóstico</option>
+              <option value="4">Formateo</option>
+              <option value="5">Limpieza Física</option>
+              <option value="6">Limpieza y Cambio de Pasta</option>
+              <option value="7">Recuperación de Datos</option>
+              <option value="8">Reemplazo de Disco Duro</option>
+              <option value="9">Reemplazo de RAM</option>
             </select>
           </label>
         </div>
 
-        {/* Grid editable de items */}
+        {/* tabla de items */}
         <div className="mt-2 bg-black border-2 border-green-700 rounded-sm p-2">
           <div className="grid grid-cols-12 gap-2 text-sm text-green-300 border-b border-green-700 pb-2 mb-2">
             <div className="col-span-6">CONCEPTO</div>
@@ -169,18 +228,49 @@ export default function Cotizar({ onClose }) {
           </div>
         </div>
       </form>
-      <BotonesAccion
-        formId="form-cotizar"
-        onClose={onClose}
-        submitText="COTIZAR"
-      />
+      <BotonesAccion id="form-cotizar" onClose={onClose} submitText="COTIZAR" />
     </div>
   );
 
-  // Si el padre pasó onClose, el overlay lo maneja MainMenu; devolvemos solo el contenido.
-  if (typeof onClose === "function") return content;
+  // Vista del resultado
+  const resultContent = (
+    <div className="w-full max-w-2xl rounded-lg p-6 bg-black text-white text-center space-y-4">
+      <HeaderModal texto="RESULTADO" tamano={24} />
+      <p className={result === "success" ? "text-green-400 text-xl "  : "text-red-400 text-xl"}>
+        {statusMsg}
+      </p>
+      <div className="flex justify-center gap-4">
+        {result === "success" ? (
+          <button
+            onClick={onClose}
+            className="bg-red-700 px-4 py-2 rounded-md text-white"
+          >
+            Cerrar
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => setResult(null)} // reintentar
+              className="bg-yellow-600 px-4 py-2 rounded-md text-white"
+            >
+              Reintentar
+            </button>
+            <button
+              onClick={onClose}
+              className="bg-red-700 px-4 py-2 rounded-md text-white"
+            >
+              Cerrar
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
 
-  // Si se usa standalone, envolvemos con overlay
+  const content = result ? resultContent : formContent;
+
+  // Modal con overlay
+  if (typeof onClose === "function") return content;
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black/80 z-50 p-4">
       {content}

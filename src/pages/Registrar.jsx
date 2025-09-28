@@ -40,7 +40,7 @@ export default function Registrar({ onClose }) {
       <HeaderModal texto="REGISTRAR" tamano={24} />
 
       <form
-        formId="form-registrar"
+        id="form-registrar"
         onSubmit={handleRegistrar}
         className="bg-black border-2 border-green-500 rounded-md p-3"
       >
@@ -131,7 +131,7 @@ export default function Registrar({ onClose }) {
         {result && <div className="text-green-200 mb-3">{result}</div>}
       </form>
       <BotonesAccion
-        formId="form-registrar"
+        id="form-registrar"
         onClose={onClose}
         submitText="REGISTRAR"
       />

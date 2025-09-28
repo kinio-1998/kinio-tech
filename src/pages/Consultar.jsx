@@ -38,7 +38,7 @@ export default function Consultar({ onClose }) {
         {result && <div className="text-green-200 mb-3">{result}</div>}
       </form>
       <BotonesAccion
-              formId="form-consultar"
+              id="form-consultar"
               onClose={onClose}
               submitText="CONSULTAR"
             />
