@@ -103,25 +103,40 @@ def create_quote_pdf(data: QuoteData, template_path: str, output_dir: str) -> st
             c.line(80, y - 3, 525, y - 3)
 
     # Mano de obra
-    LABOR_PRICING = {
-        "1": 120.0,
-        "2": 80.0,
-        "3": 100.0,
-        "default": 90.0,
-    }
-    labor_fee = None
-    if data.labor_fee is not None:
-        labor_fee = float(data.labor_fee)
-    elif data.service_type:
-        labor_fee = LABOR_PRICING.get(data.service_type.lower(), LABOR_PRICING["default"])
+    LABOR_PRICING = [
+        {"precio": 1000, "descripcion": "Armado De PC"},
+        {"precio": 400, "descripcion": "Cambio de Pasta"},
+        {"precio": 150, "descripcion": "Diagnóstico"},
+        {"precio": 350, "descripcion": "Formateo e Instalación de Sistema Operativo"},
+        {"precio": 400, "descripcion": "Limpieza Física"},
+        {"precio": 180, "descripcion": "Limpieza y Cambio de Pasta"},
+        {"precio": 500, "descripcion": "Recuperación o Respaldo de Datos"},
+        {"precio": 300, "descripcion": "Reemplazo de Disco Duro"},
+        {"precio": 300, "descripcion": "Reemplazo o aumento de RAM"},
+    ]
 
-    if labor_fee is not None:
+    labor_desc = None
+    labor_price = None
+
+    if data.labor_fee is not None:
+        labor_desc = "Servicio"
+        labor_price = float(data.labor_fee)
+    elif data.service_type:
+        try:
+            service_idx = int(data.service_type) - 1
+            selected = LABOR_PRICING[service_idx]
+            labor_desc = selected["descripcion"]
+            labor_price = float(selected["precio"])
+        except (ValueError, IndexError):
+            logger.warning(f"Tipo de servicio inválido: {data.service_type}")
+
+    if labor_price is not None:
         y = start_y - (len(data.items or [])) * row_height
-        c.drawString(85, y, f"Mano de obra: {data.service_type or 'Servicio'}")
+        c.drawString(85, y, f"Mano de obra: {labor_desc}")
         c.drawRightString(325, y, "1")
-        c.drawRightString(430, y, f"${labor_fee:,.2f}")
-        c.drawRightString(520, y, f"${labor_fee:,.2f}")
-        total_sum += labor_fee
+        c.drawRightString(430, y, f"${labor_price:,.2f}")
+        c.drawRightString(520, y, f"${labor_price:,.2f}")
+        total_sum += labor_price
 
         c.setStrokeColorRGB(0.7, 0.7, 0.7)
         c.setLineWidth(0.5)
@@ -205,7 +220,7 @@ async def cotizar(data: QuoteData):
     try:
         out_path = create_quote_pdf(data, template_path, os.path.join(base_dir, "output"))
         if data.client_email:
-            send_email(out_path, data.client_email)
+#            send_email(out_path, data.client_email)
             estatus = 1
         else:
             logger.warning("No se proporcionó correo del cliente, no se envió email.")
