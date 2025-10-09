@@ -24,6 +24,4 @@ dist-ssr
 *.sw?
 .env
 .venv
-backend/env
-backend/.venv
-backend/output
+backend
