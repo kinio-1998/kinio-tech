@@ -46,6 +46,10 @@ def sanitize_name(name: str) -> str:
     s = re.sub(r"[^A-Za-z0-9 ]+", "", name).strip()
     return re.sub(r"\s+", "_", s)
 
+def calculate_price_without_iva(price_with_iva: float) -> float:
+    """Calcula el precio sin IVA (precio con IVA / 1.16)"""
+    return price_with_iva - (price_with_iva * 0.16)
+
 def create_quote_pdf(data: QuoteData, template_path: str, output_dir: str) -> str:
     os.makedirs(output_dir, exist_ok=True)
     reader = PdfReader(template_path)
@@ -79,24 +83,31 @@ def create_quote_pdf(data: QuoteData, template_path: str, output_dir: str) -> st
     # Tabla de items
     start_y = height - 320
     row_height = 18
-    total_sum = 0.0
+    subtotal_sum = 0.0
+    iva_total = 0.0
+    total = 0.0
 
     if data.items:
         for idx, it in enumerate(data.items):
             y = start_y - idx * row_height
             qty = int(it.qty or 0)
-            price = float(it.price or 0.0)
-            line_total = qty * price
-            total_sum += line_total
+            price_with_iva = float(it.price or 0.0)
+            price_without_iva = calculate_price_without_iva(price_with_iva)
+            line_total_without_iva = qty * price_without_iva
+            line_iva = (qty * price_with_iva) - line_total_without_iva
+            
+            subtotal_sum += line_total_without_iva
+            iva_total += line_iva
 
             desc = it.description or ""
             if len(desc) > 50:
                 desc = desc[:47] + "..."
 
+            # MOSTRAR PRECIOS SIN IVA EN LA TABLA
             c.drawString(85, y, desc)
             c.drawRightString(330, y, str(qty))
-            c.drawRightString(430, y, f"${price:,.2f}")
-            c.drawRightString(520, y, f"${line_total:,.2f}")
+            c.drawRightString(430, y, f"${price_without_iva:,.2f}")  # Precio sin IVA
+            c.drawRightString(520, y, f"${line_total_without_iva:,.2f}")  # Total sin IVA
 
             c.setStrokeColorRGB(0.7, 0.7, 0.7)
             c.setLineWidth(0.5)
@@ -104,7 +115,7 @@ def create_quote_pdf(data: QuoteData, template_path: str, output_dir: str) -> st
 
     # Mano de obra
     LABOR_PRICING = [
-        {"precio": 1000, "descripcion": "Armado De PC"},
+        {"precio": 1500, "descripcion": "Armado De PC"},
         {"precio": 400, "descripcion": "Cambio de Pasta"},
         {"precio": 150, "descripcion": "Diagnóstico"},
         {"precio": 350, "descripcion": "Formateo e Instalación de Sistema Operativo"},
@@ -116,42 +127,63 @@ def create_quote_pdf(data: QuoteData, template_path: str, output_dir: str) -> st
     ]
 
     labor_desc = None
-    labor_price = None
-
+    labor_price_with_iva = None
+    mensajePagoAnticipado = ""
+    if data.service_type - 1 != "0":
+        mensajePagoAnticipado = "Se cobrará un anticipo del 70% del total al aceptar la cotización."
+    else:
+        mensajePagoAnticipado = "Se debe cubrir el 100% del total de los componentes al aceptar la cotización."
+    
     if data.labor_fee is not None:
         labor_desc = "Servicio"
-        labor_price = float(data.labor_fee)
+        labor_price_with_iva = float(data.labor_fee)
     elif data.service_type:
         try:
             service_idx = int(data.service_type) - 1
             selected = LABOR_PRICING[service_idx]
             labor_desc = selected["descripcion"]
-            labor_price = float(selected["precio"])
+            labor_price_with_iva = float(selected["precio"])
         except (ValueError, IndexError):
             logger.warning(f"Tipo de servicio inválido: {data.service_type}")
 
-    if labor_price is not None:
+    if labor_price_with_iva is not None:
         y = start_y - (len(data.items or [])) * row_height
-        c.drawString(85, y, f"Mano de obra: {labor_desc}")
-        c.drawRightString(325, y, "1")
-        c.drawRightString(430, y, f"${labor_price:,.2f}")
-        c.drawRightString(520, y, f"${labor_price:,.2f}")
-        total_sum += labor_price
+        labor_price_without_iva = calculate_price_without_iva(labor_price_with_iva)
+        labor_iva = labor_price_with_iva - labor_price_without_iva
+        
+        subtotal_sum += labor_price_without_iva
+        iva_total += labor_iva
+
+        # MOSTRAR PRECIO SIN IVA EN LA TABLA
+        c.drawString(85, y, f"Mano de obra de {labor_desc}")
+        c.drawRightString(330, y, "1")
+        c.drawRightString(430, y, f"${labor_price_without_iva:,.2f}")  # Precio sin IVA
+        c.drawRightString(520, y, f"${labor_price_without_iva:,.2f}")  # Total sin IVA
 
         c.setStrokeColorRGB(0.7, 0.7, 0.7)
         c.setLineWidth(0.5)
         c.line(80, y - 3, 525, y - 3)
 
-    # Total
+    # Calcular total final (subtotal + IVA)
+    total = subtotal_sum + iva_total
+
+    # Totales
     y -= 1 * row_height
-    c.setFont(font_name, 11)
-    c.drawRightString(520, y, f"TOTAL: ${total_sum:,.2f}")
+    c.setFont(font_name + "-Bold", 11)
+    c.drawRightString(520, y, f"SUBTOTAL: ${subtotal_sum:,.2f}")
+    c.drawRightString(520, y - 10, f"IVA: ${iva_total:,.2f}")
+    c.drawRightString(520, y - 20, f"TOTAL: ${total:,.2f}")
 
     # Notas
-    c.setFont(font_name, 10)
-    c.drawString(85, height - 550, f"Notas: Esta cotización es válida por 7 días.")
-    c.drawString(117, height - 560, f"Los equipos reparados deberán recogerse en un plazo máximo de 30 días. En caso contrario,")
-    c.drawString(117, height - 570, f"se pondrán a la venta")
+    c.setFont(font_name + "-Bold", 10)
+    c.drawString(85, height - 580, f"Notas: ")
+    c.drawString(120, height - 580, f"Esta cotización es válida por 7 días.")
+    c.drawString(120, height - 590, f"Los equipos reparados deberán recogerse en un plazo máximo de 30 días.")
+    c.drawString(120, height - 600, f"Los precios mostrados no incluyen IVA.")
+    c.drawString(120, height - 610, f"${mensajePagoAnticipado}")
+    c.drawString(120, height - 620, f"Cuenta para transferencias de Mercado Pago: ")
+    c.drawString(130, height - 630, f"-Nombre:Carlos Daniel Duarte Leon")
+    c.drawString(130, height - 640, f"-Clave Interbancaria: 722969015492582401 ")
 
     c.save()
     packet.seek(0)
@@ -220,7 +252,7 @@ async def cotizar(data: QuoteData):
     try:
         out_path = create_quote_pdf(data, template_path, os.path.join(base_dir, "output"))
         if data.client_email:
-#            send_email(out_path, data.client_email)
+            send_email(out_path, data.client_email)
             estatus = 1
         else:
             logger.warning("No se proporcionó correo del cliente, no se envió email.")
