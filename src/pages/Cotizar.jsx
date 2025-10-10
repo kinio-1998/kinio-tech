@@ -27,7 +27,7 @@ export default function Cotizar({ onClose }) {
     setStatusMsg("Enviando cotización...");
 
     try {
-      const res = await fetch("http://localhost:8000/cotizar", {
+      const res = await fetch("https://kiniotech-backend.onrender.com/api/cotizar", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -22,8 +22,9 @@ rl.question("📝 Escribe el mensaje del commit: ", (mensaje) => {
     console.log(`🔐 Haciendo commit con mensaje: "${mensaje}"`);
     execSync(`git commit -m "${mensaje}"`, { stdio: "inherit" });
 
-    console.log("🚀 Haciendo push forzado...");
-execSync("git push origin main --force", { stdio: "inherit" });
+    console.log("🚀 Haciendo push...");
+    execSync("git push", { stdio: "inherit" });
+
     console.log("🌐 Haciendo deploy...");
     execSync("npm run deploy", { stdio: "inherit" });
 
