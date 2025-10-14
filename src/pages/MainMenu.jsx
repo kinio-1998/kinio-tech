@@ -1,36 +1,26 @@
-import { Link } from "react-router-dom";
 import { useState, useEffect } from "react";
 import Consultar from "./Consultar";
 import Entregar from "./Entregar";
 import Registrar from "./Registrar";
 import Cotizar from "./Cotizar";
 import Pendientes from "./Pendientes";
+import { botones } from "../obj/botones";
 
 export default function App() {
-  const [consultOpen, setConsultOpen] = useState(false);
-  const [entregOpen, setEntregOpen] = useState(false);
-  const [registrarOpen, setRegistrarOpen] = useState(false);
-  const [cotizarOpen, setCotizarOpen] = useState(false);
-  const [pendientesOpen, setPendientesOpen] = useState(false);
+  // single modal id state
+  const [activeModal, setActiveModal] = useState(null); // values: 'consultar','entregar','registrar','cotizar','pendientes' | null
 
   useEffect(() => {
-    const anyOpen = consultOpen || entregOpen || registrarOpen || cotizarOpen || pendientesOpen;
-    document.body.style.overflow = anyOpen ? "hidden" : "";
+    document.body.style.overflow = activeModal ? "hidden" : "";
     const onKey = (e) => {
-      if (e.key === "Escape") {
-        setConsultOpen(false);
-        setEntregOpen(false);
-        setRegistrarOpen(false);
-        setCotizarOpen(false);
-        setPendientesOpen(false);
-      }
+      if (e.key === "Escape") setActiveModal(null);
     };
     window.addEventListener("keydown", onKey);
     return () => {
       window.removeEventListener("keydown", onKey);
       document.body.style.overflow = "";
     };
-  }, [consultOpen, entregOpen, registrarOpen, cotizarOpen, pendientesOpen]);
+  }, [activeModal]);
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-2">
@@ -58,178 +48,49 @@ export default function App() {
         <div className="bg-black p-4 md:p-6 mt-2 md:mt-4 relative w-full max-w-[600px] md:h-[550px] h-auto mx-auto">
           {/* Diamond (rotated square) */}
           <div className="hidden md:flex relative w-[450px] h-[500px] justify-center items-center mx-auto">
-           
-            {/* Registrar (centro) -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setRegistrarOpen(true)}
-              className="absolute flex items-center justify-center border-2 border-green-600 text-green-600 font-bold transform rotate-45 w-32 h-32 bg-black hover:bg-green-300 hover:text-white z-10"
-              aria-haspopup="dialog"
-              aria-expanded={registrarOpen}
-            >
-              <span className="-rotate-45 text-xl">REGISTRAR</span>
-            </button>
-            {/* Boton arriba der -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setEntregOpen(true)}
-              className="absolute -translate-y-[144px] translate-x-[144px] flex items-center justify-center border-b-2 border-r-4 border-t-4 border-l-2 border-green-600 text-green-600 font-bold transform  w-72 h-72 bg-black hover:bg-green-300 hover:text-white rounded-tr-xl"
-              aria-haspopup="dialog"
-              aria-expanded={entregOpen}
+            {botones.map((btn) => (
+              <button
+                key={btn.id}
+                type="button"
+                onClick={() => setActiveModal(btn.modal)}
+                className={btn.clases}
               >
-              <span className="rotate-45 text-xl pb-32">Boton ARRIBA der</span>
-            </button>
-            {/* Boton abajo der -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setEntregOpen(true)}
-              className="absolute translate-y-[144px] translate-x-[144px] flex items-center justify-center border-b-4 border-r-4 border-t-2 border-l-2 border-green-600 text-green-600 font-bold transform  w-72 h-72 bg-black hover:bg-green-300 hover:text-white rounded-br-xl"
-              aria-haspopup="dialog"
-              aria-expanded={entregOpen}
-              >
-              <span className="-rotate-45 text-xl pt-32">Boton abajo der</span>
-            </button>
-            {/* Boton abajo -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setEntregOpen(true)}
-              className="absolute translate-y-[144px] -translate-x-[144px] flex items-center justify-center border-b-4 border-r-2 border-t-2 border-l-4 rounded-bl-xl border-green-600 text-green-600 font-bold transform  w-72 h-72 bg-black hover:bg-green-300 hover:text-white"
-              aria-haspopup="dialog"
-              aria-expanded={entregOpen}
-              >
-              <span className="rotate-45 text-xl pt-32">Boton abajo izq</span>
-            </button>
-            {/* Publicar -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setEntregOpen(true)}
-              className="absolute -translate-y-[144px] -translate-x-[144px] flex items-center justify-center border-b-2 border-r-2 border-t-4 border-l-4 rounded-tl-xl border-green-600 text-green-600 font-bold transform  w-72 h-72 bg-black hover:bg-green-300 hover:text-white"
-              aria-haspopup="dialog"
-              aria-expanded={entregOpen}
-            >
-              <span className="-rotate-45 text-xl pb-32">PUBLICAR</span>
-            </button>
-            {/* Entregar -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setEntregOpen(true)}
-              className="absolute -translate-y-[140px] flex items-center justify-center border-2 border-green-600 text-green-600 font-bold transform rotate-45 w-52 h-52 bg-black hover:bg-green-300 hover:text-white"
-              aria-haspopup="dialog"
-              aria-expanded={entregOpen}
-            >
-              <span className="-rotate-45 text-xl">ENTREGAR</span>
-            </button>
-
-            {/* Pendientes -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setPendientesOpen(true)}
-              className="absolute translate-y-[140px] flex items-center justify-center border-2 border-green-600 text-green-600 font-bold transform rotate-45 w-52 h-52 bg-black hover:bg-green-300 hover:text-white"
-              aria-haspopup="dialog"
-              aria-expanded={pendientesOpen}
-            >
-              <span className="-rotate-45 text-xl">PENDIENTES</span>
-            </button>
-
-            {/* Cotizar -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setCotizarOpen(true)}
-              className="absolute -translate-x-[140px] flex items-center justify-center border-2 border-green-600 text-green-600 font-bold transform rotate-45 w-52 h-52 bg-black hover:bg-green-300 hover:text-white"
-              aria-haspopup="dialog"
-              aria-expanded={cotizarOpen}
-            >
-              <span className="-rotate-45 text-xl">COTIZAR</span>
-            </button>
-
-            {/* Consultar -> abre modal */}
-            <button
-              type="button"
-              onClick={() => setConsultOpen(true)}
-              className="absolute translate-x-[140px] flex items-center justify-center border-2  border-green-600 text-green-600 font-bold transform rotate-45 w-52 h-52 bg-black hover:bg-green-300 hover:text-white"
-              aria-haspopup="dialog"
-              aria-expanded={consultOpen}
-            >
-              <span className="-rotate-45 text-xl justify-end pl-5">CONSULTAR</span>
-            </button>
+                <span className={btn.span}>{btn.label}</span>
+              </button>
+            ))}
           </div>
-
+          </div>
           {/* Mobile grid con todos los botones y ajuste para impar */}
-          {(() => {
-            const mobileButtons = [
-              { label: 'COTIZAR', onClick: () => setCotizarOpen(true) },
-              { label: 'CONSULTAR', onClick: () => setConsultOpen(true) },
-              { label: 'REGISTRAR', onClick: () => setRegistrarOpen(true) },
-              { label: 'ENTREGAR', onClick: () => setEntregOpen(true) },
-              { label: 'PENDIENTES', onClick: () => setPendientesOpen(true) },
-              { label: 'Boton ARRIBA der', onClick: () => setEntregOpen(true) },
-              { label: 'Boton abajo der', onClick: () => setEntregOpen(true) },
-              { label: 'Boton abajo izq', onClick: () => setEntregOpen(true) },
-              { label: 'PUBLICAR', onClick: () => setEntregOpen(true) },
-            ];
-            return (
-              <div className="grid grid-cols-2 gap-4 w-full max-w-sm md:hidden p-2">
-                {mobileButtons.map((btn, i) => {
-                  const isLast = i === mobileButtons.length - 1;
-                  const isOdd = mobileButtons.length % 2 === 1;
-                  return (
-                    <button
-                      key={btn.label}
-                      type="button"
-                      onClick={btn.onClick}
-                      className={
-                        "flex items-center justify-center border-2 border-green-600 text-green-600 font-bold h-20 md:h-24 px-3 bg-black hover:bg-green-300 hover:text-white rounded-2xl" +
-                        (isLast && isOdd ? " col-span-2" : "")
-                      }
-                    >
-                      {btn.label}
-                    </button>
-                  );
-                })}
-              </div>
-            );
-          })()}
-        </div>
-      </div>
-
-      {/* Modals: each modal uses parent's overlay and receives onClose */}
-      {consultOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60" onClick={() => setConsultOpen(false)}>
-          {/* aumentado max-w a 3xl y padding mayor */}
-          <div className="bg-black rounded-lg border-2 border-green-600 w-11/12 max-w-3xl pl-12 text-white" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <Consultar onClose={() => setConsultOpen(false)} />
+          <div className="grid grid-cols-2 gap-4 w-full max-w-sm md:hidden p-2">
+            {botones.map((btn, i) => {
+              const isLast = i === botones.length - 1;
+              const isOdd = botones.length % 2 === 1;
+              return (
+                <button
+                  key={btn.id + "-mobile"}
+                  type="button"
+                  onClick={() => setActiveModal(btn.modal)}
+                  className={
+                    "flex items-center justify-center border-2 border-green-600 text-green-600 font-bold h-20 md:h-24 px-3 bg-black hover:bg-green-300 hover:text-white rounded-2xl" +
+                    (isLast && isOdd ? " col-span-2" : "")
+                  }
+                >
+                  {btn.label}
+                </button>
+              );
+            })}
           </div>
         </div>
-      )}
 
-      {entregOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60" onClick={() => setEntregOpen(false)}>
+      {/* Modal renderer (single overlay) */}
+      {activeModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60" onClick={() => setActiveModal(null)}>
           <div className="bg-black rounded-lg border-2 border-green-600 w-11/12 max-w-3xl pl-12 text-white" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <Entregar onClose={() => setEntregOpen(false)} />
-          </div>
-        </div>
-      )}
-
-      {registrarOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60" onClick={() => setRegistrarOpen(false)}>
-          <div className="bg-black rounded-lg border-2 border-green-600 w-11/12 max-w-3xl pl-12 text-white" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <Registrar onClose={() => setRegistrarOpen(false)} />
-          </div>
-        </div>
-      )}
-
-      {cotizarOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60" onClick={() => setCotizarOpen(false)}>
-          <div className="bg-black rounded-lg border-2 border-green-600 w-11/12 max-w-3xl pl-12 text-white" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <Cotizar onClose={() => setCotizarOpen(false)} />
-          </div>
-        </div>
-      )}
-
-      {pendientesOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60" onClick={() => setPendientesOpen(false)}>
-          <div className="bg-black rounded-lg border-2 border-green-600 w-11/12 max-w-3xl pl-12 text-white" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            <Pendientes onClose={() => setPendientesOpen(false)} />
+            {activeModal === "consultar" && <Consultar onClose={() => setActiveModal(null)} />}
+            {activeModal === "entregar" && <Entregar onClose={() => setActiveModal(null)} />}
+            {activeModal === "registrar" && <Registrar onClose={() => setActiveModal(null)} />}
+            {activeModal === "cotizar" && <Cotizar onClose={() => setActiveModal(null)} />}
+            {activeModal === "pendientes" && <Pendientes onClose={() => setActiveModal(null)} />}
           </div>
         </div>
       )}

@@ -11,11 +11,11 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<MainMenu />} />
-  <Route path="/cotizar" element={<Cotizar />} />
-  <Route path="/consultar" element={<Consultar />} />
-  <Route path="/entregar" element={<Entregar />} />
-  <Route path="/pendientes" element={<Pendientes />} />
-  <Route path="/registrar" element={<Registrar />} />
+        <Route path="/cotizar" element={<Cotizar />} />
+        <Route path="/consultar" element={<Consultar />} />
+        <Route path="/entregar" element={<Entregar />} />
+        <Route path="/pendientes" element={<Pendientes />} />
+        <Route path="/registrar" element={<Registrar />} />
       </Routes>
     </Router>
   );
