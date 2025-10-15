@@ -4,6 +4,7 @@ import Entregar from "./Entregar";
 import Registrar from "./Registrar";
 import Cotizar from "./Cotizar";
 import Pendientes from "./Pendientes";
+import Publicar from "./Publicar";
 import { botones } from "../obj/botones";
 
 export default function App() {
@@ -91,6 +92,7 @@ export default function App() {
             {activeModal === "registrar" && <Registrar onClose={() => setActiveModal(null)} />}
             {activeModal === "cotizar" && <Cotizar onClose={() => setActiveModal(null)} />}
             {activeModal === "pendientes" && <Pendientes onClose={() => setActiveModal(null)} />}
+            {activeModal === "publicar" && <Publicar onClose={() => setActiveModal(null)} />}
           </div>
         </div>
       )}

@@ -1,3 +1,74 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* Estilizar las flechas de los inputs numéricos para Chrome, Safari, Edge, Opera */
+@layer base {
+  /* Ocultar flechas de inputs numéricos en Chrome, Safari, Edge, Opera */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* Ocultar flechas en Firefox */
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+
+  /* Estilo para los inputs tipo file */
+  input[type="file"] {
+    width: 100%;
+    max-width: 100%;
+    color: #d1d5db;
+    background: #000;
+    padding: 0.5rem;
+    font-size: 0.875rem;
+  }
+
+  input[type="file"]::file-selector-button {
+    background: #064e3b;
+    border: 1px solid #065f46;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    margin-right: 1rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+  }
+
+  input[type="file"]::file-selector-button:hover {
+    background: #065f46;
+  }
+
+  @media (max-width: 640px) {
+    input[type="file"] {
+      font-size: 0.75rem;
+    }
+    input[type="file"]::file-selector-button {
+      padding: 0.25rem 0.5rem;
+      margin-right: 0.5rem;
+      font-size: 0.75rem;
+    }
+  }
+
+  /* Para el scrollbar personalizado */
+  .custom-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-track {
+    background: #0f0f0f;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb {
+    background: #064e3b;
+    border-radius: 3px;
+  }
+
+  .custom-scroll::-webkit-scrollbar-thumb:hover {
+    background: #065f46;
+  }
+}

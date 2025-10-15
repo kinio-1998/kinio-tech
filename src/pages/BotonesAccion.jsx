@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-export const BotonesAccion = ({ id, onClose, submitText }) => {
+export const BotonesAccion = ({ id, onClose, lblBtn }) => {
   const navigate = useNavigate();
 
   const handleClose = () => {
@@ -26,7 +26,7 @@ export const BotonesAccion = ({ id, onClose, submitText }) => {
         form={id} // 👉 aquí se hace el submit del form del padre
         className="bg-green-700 text-white border-2 border-green-500 px-4 py-1 rounded-full"
       >
-        {submitText}
+        {lblBtn}
       </button>
     </div>
   );
