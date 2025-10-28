@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import ModalWrapper from '../components/modals/ModalWrapper';
+import ModalWrapper from '../modals/ModalWrapper';
 
 const DEFAULT_BACKEND = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/publicar';
 

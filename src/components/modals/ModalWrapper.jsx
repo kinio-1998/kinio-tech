@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import Logo from "./Logo";
+import Logo from "../Logo";
 
 export default function ModalWrapper({ title, onClose, children, id, isLoading, loadingText, hideDefaultButtons = false }) {
   const navigate = useNavigate();

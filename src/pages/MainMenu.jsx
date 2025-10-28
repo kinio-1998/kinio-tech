@@ -1,10 +1,16 @@
 import { useState, useEffect } from "react";
-import Consultar from "./Consultar";
-import Entregar from "./Entregar";
-import Registrar from "./Registrar";
-import Cotizar from "./Cotizar";
-import Pendientes from "./Pendientes";
-import Publicar from "./Publicar";
+import ConsultarModal from "../components/modals/ConsultarModal";
+import EntregarModal from "../components/modals/EntregarModal";
+import RegistrarForm from "../components/forms/RegistrarForm";
+import CotizarForm from "../components/forms/CotizarForm";
+import PendientesList from "../components/lists/PendientesList";
+import PublicarForm from "../components/forms/PublicarForm";
+import Dashboard from "../components/dashboard/Dashboard";
+import ReparacionesList from "../components/lists/ReparacionesList";
+import ClientesList from "../components/lists/ClientesList";
+import FinanzasList from "../components/lists/FinanzasList";
+import ServiciosList from "../components/lists/ServiciosList";
+import NuevaReparacionForm from "../components/forms/NuevaReparacionForm";
 import { botones } from "../obj/botones";
 
 export default function App() {
@@ -31,6 +37,23 @@ export default function App() {
         .custom-scroll::-webkit-scrollbar-track{ background: transparent; }
         .custom-scroll::-webkit-scrollbar-thumb{ background:#16a34a; border-radius:9999px; border:2px solid transparent; background-clip:padding-box; }
         .custom-scroll{ scrollbar-color: #16a34a transparent; scrollbar-width: thin; }
+        
+        /* Animaciones para los modales anidados */
+        .modal-overlay {
+          animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        /* Estilos para las tablas del CRUD */
+        .crud-table th {
+          position: sticky;
+          top: 0;
+          background: rgba(0, 0, 0, 0.9);
+          backdrop-filter: blur(10px);
+        }
       `}</style>
 
       {/* contenedor exterior: usar ancho responsivo en vez de fijo */}
@@ -87,12 +110,18 @@ export default function App() {
       {activeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60" onClick={() => setActiveModal(null)}>
           <div className="bg-black rounded-lg border-2 border-green-600 w-11/12 max-w-3xl pl-12 text-white" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            {activeModal === "consultar" && <Consultar onClose={() => setActiveModal(null)} />}
-            {activeModal === "entregar" && <Entregar onClose={() => setActiveModal(null)} />}
-            {activeModal === "registrar" && <Registrar onClose={() => setActiveModal(null)} />}
-            {activeModal === "cotizar" && <Cotizar onClose={() => setActiveModal(null)} />}
-            {activeModal === "pendientes" && <Pendientes onClose={() => setActiveModal(null)} />}
-            {activeModal === "publicar" && <Publicar onClose={() => setActiveModal(null)} />}
+            {activeModal === "consultar" && <ConsultarModal onClose={() => setActiveModal(null)} />}
+            {activeModal === "entregar" && <EntregarModal onClose={() => setActiveModal(null)} />}
+            {activeModal === "registrar" && <RegistrarForm onClose={() => setActiveModal(null)} />}
+            {activeModal === "cotizar" && <CotizarForm onClose={() => setActiveModal(null)} />}
+            {activeModal === "pendientes" && <PendientesList onClose={() => setActiveModal(null)} />}
+            {activeModal === "publicar" && <PublicarForm onClose={() => setActiveModal(null)} />}
+            {activeModal === "dashboard" && <Dashboard onClose={() => setActiveModal(null)} />}
+            {activeModal === "reparaciones" && <ReparacionesList onClose={() => setActiveModal(null)} />}
+            {activeModal === "clientes" && <ClientesList onClose={() => setActiveModal(null)} />}
+            {activeModal === "finanzas" && <FinanzasList onClose={() => setActiveModal(null)} />}
+            {activeModal === "servicios" && <ServiciosList onClose={() => setActiveModal(null)} />}
+            {activeModal === "nueva-reparacion" && <NuevaReparacionForm onClose={() => setActiveModal(null)} />}
           </div>
         </div>
       )}

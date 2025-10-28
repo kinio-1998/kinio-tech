@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ModalWrapper from "../components/modals/ModalWrapper";
+import ModalWrapper from "./ModalWrapper";
 
 export default function Entregar({ onClose }) {
   const [folio, setFolio] = useState("");

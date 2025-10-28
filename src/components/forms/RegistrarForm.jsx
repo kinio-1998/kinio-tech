@@ -1,5 +1,5 @@
 import { useState } from "react";
-import ModalWrapper from "../components/modals/ModalWrapper";
+import ModalWrapper from "../modals/ModalWrapper";
 
 export default function Registrar({ onClose }) {
   const [form, setForm] = useState({
