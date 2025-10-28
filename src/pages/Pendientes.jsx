@@ -36,17 +36,8 @@ export default function Pendientes({ onClose }) {
     </div>
   );
 
-  const actionButtons = (
-    <button
-      onClick={onClose}
-      className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
-    >
-      CERRAR
-    </button>
-  );
-
   return (
-    <ModalWrapper title="PENDIENTES" onClose={onClose} actionButtons={actionButtons}>
+    <ModalWrapper title="PENDIENTES" onClose={onClose}>
       {pendientesContent}
     </ModalWrapper>
   );

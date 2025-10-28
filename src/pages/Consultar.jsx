@@ -32,27 +32,8 @@ export default function Consultar({ onClose }) {
     </form>
   );
 
-  const actionButtons = (
-    <>
-      <button
-        type="submit"
-        form="form-consultar"
-        className="bg-green-700 text-white border-2 border-green-500 px-4 py-1 rounded-full"
-      >
-        CONSULTAR
-      </button>
-      <button
-        type="button"
-        onClick={onClose}
-        className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
-      >
-        CERRAR
-      </button>
-    </>
-  );
-
   return (
-    <ModalWrapper title="CONSULTAR" onClose={onClose} actionButtons={actionButtons}>
+    <ModalWrapper title="CONSULTAR" onClose={onClose} id="form-consultar">
       {consultarForm}
     </ModalWrapper>
   );

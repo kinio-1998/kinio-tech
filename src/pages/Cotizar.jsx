@@ -145,6 +145,47 @@ export default function Cotizar({ onClose }) {
     (sum, it) => sum + (Number(it.cantidad) || 0) * (Number(it.precio) || 0),
     0
   );
+  
+  const resultContent = (
+    <div className="bg-black border-2 border-green-500 rounded-md p-6 text-center space-y-4">
+      <h2 className="text-2xl font-bold text-green-500 mb-4">RESULTADO</h2>
+      <p
+        className={
+          result === "success"
+            ? "text-green-400 text-xl "
+            : "text-red-400 text-xl"
+        }
+      >
+        {statusMsg}
+      </p>
+      <div className="flex justify-center gap-4 mt-6">
+        {result === "success" ? (
+          <button
+            onClick={onClose}
+            className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
+          >
+            CERRAR
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={() => setResult(null)}
+              className="bg-yellow-600 text-white border-2 border-yellow-500 px-4 py-1 rounded-full"
+            >
+              REINTENTAR
+            </button>
+            <button
+              onClick={onClose}
+              className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
+            >
+              CERRAR
+            </button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+  
   const cotizarForm = (
     <form
       id="form-cotizar"
@@ -164,7 +205,14 @@ export default function Cotizar({ onClose }) {
               className={`bg-black border-2 ${formErrors.nombre ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-sm sm:text-base`}
             />
             {formErrors.nombre && (
-              <span className="text-red-500 text-xs absolute -bottom-5">{formErrors.nombre}</span>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="pointer-events-none absolute -top-12 right-0 w-64 bg-red-900 border-l-2 border-red-500 text-sm text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                  {formErrors.nombre}
+                </div>
+              </div>
             )}
           </div>
         </label>
@@ -179,7 +227,14 @@ export default function Cotizar({ onClose }) {
               className={`bg-black border-2 ${formErrors.correo ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-sm sm:text-base`}
             />
             {formErrors.correo && (
-              <span className="text-red-500 text-xs absolute -bottom-5">{formErrors.correo}</span>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="pointer-events-none absolute -top-12 right-0 w-64 bg-red-900 border-l-2 border-red-500 text-sm text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                  {formErrors.correo}
+                </div>
+              </div>
             )}
           </div>
         </label>
@@ -197,7 +252,14 @@ export default function Cotizar({ onClose }) {
               pattern="\d{10}"
             />
             {formErrors.telefono && (
-              <span className="text-red-500 text-xs absolute -bottom-5">{formErrors.telefono}</span>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="pointer-events-none absolute -top-12 right-0 w-64 bg-red-900 border-l-2 border-red-500 text-sm text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                  {formErrors.telefono}
+                </div>
+              </div>
             )}
           </div>
         </label>
@@ -222,7 +284,14 @@ export default function Cotizar({ onClose }) {
             <option value="9">Reemplazo de RAM</option>
             </select>
             {formErrors.servicio && (
-              <span className="text-red-500 text-xs absolute -bottom-5">{formErrors.servicio}</span>
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                </svg>
+                <div className="pointer-events-none absolute -top-12 right-0 w-64 bg-red-900 border-l-2 border-red-500 text-sm text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                  {formErrors.servicio}
+                </div>
+              </div>
             )}
           </div>
         </label>
@@ -263,36 +332,63 @@ export default function Cotizar({ onClose }) {
                 key={it.id}
                 className="grid grid-cols-12 gap-1 sm:gap-2 items-center text-white text-xs sm:text-sm"
               >
-                <input
-                  value={it.concepto}
-                  onChange={(e) => updateRow(it.id, "concepto", e.target.value)}
-                  placeholder="Concepto"
-                  className={`col-span-6 bg-black border ${formErrors.items?.[index]?.concepto ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-xs sm:text-sm`}
-                />
-                {formErrors.items?.[index]?.concepto && (
-                  <span className="col-span-6 text-red-500 text-xs">{formErrors.items[index].concepto}</span>
-                )}
-                <input
-                  type="number"
-                  value={it.cantidad}
-                  min="1"
-                  onChange={(e) => updateRow(it.id, "cantidad", e.target.value)}
-                  className={`col-span-2 bg-black border ${formErrors.items?.[index]?.cantidad ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-center text-xs sm:text-sm`}
-                />
-                {formErrors.items?.[index]?.cantidad && (
-                  <span className="col-span-2 text-red-500 text-xs text-center">{formErrors.items[index].cantidad}</span>
-                )}
-                <input
-                  type="number"
-                  value={it.precio}
-                  min="0"
-                  step="0.01"
-                  onChange={(e) => updateRow(it.id, "precio", e.target.value)}
-                  className={`col-span-3 bg-black border ${formErrors.items?.[index]?.precio ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-right text-xs sm:text-sm`}
-                />
-                {formErrors.items?.[index]?.precio && (
-                  <span className="col-span-3 text-red-500 text-xs text-right">{formErrors.items[index].precio}</span>
-                )}
+                <div className="col-span-6 relative">
+                  <input
+                    value={it.concepto}
+                    onChange={(e) => updateRow(it.id, "concepto", e.target.value)}
+                    placeholder="Concepto"
+                    className={`w-full bg-black border ${formErrors.items?.[index]?.concepto ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-xs sm:text-sm`}
+                  />
+                  {formErrors.items?.[index]?.concepto && (
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                        {formErrors.items[index].concepto}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="col-span-2 relative">
+                  <input
+                    type="number"
+                    value={it.cantidad}
+                    min="1"
+                    onChange={(e) => updateRow(it.id, "cantidad", e.target.value)}
+                    className={`w-full bg-black border ${formErrors.items?.[index]?.cantidad ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-center text-xs sm:text-sm`}
+                  />
+                  {formErrors.items?.[index]?.cantidad && (
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                        {formErrors.items[index].cantidad}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="col-span-3 relative">
+                  <input
+                    type="number"
+                    value={it.precio}
+                    min="0"
+                    step="0.01"
+                    onChange={(e) => updateRow(it.id, "precio", e.target.value)}
+                    className={`w-full bg-black border ${formErrors.items?.[index]?.precio ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-right text-xs sm:text-sm`}
+                  />
+                  {formErrors.items?.[index]?.precio && (
+                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                        {formErrors.items[index].precio}
+                      </div>
+                    </div>
+                  )}
+                </div>
                 <button
                   type="button"
                   onClick={() => removeRow(it.id)}
@@ -310,7 +406,7 @@ export default function Cotizar({ onClose }) {
               onClick={addRow}
               className="bg-green-700 text-white px-3 py-1 rounded-full"
             >
-              AGREGAR
+              AGREGAR ITEM
             </button>
             <div className="text-white">
               Total: {" "}
@@ -322,67 +418,13 @@ export default function Cotizar({ onClose }) {
     </form>
   );
 
-  const actionButtons = (
-    <>
-      <button
-        type="button"
-        onClick={onClose}
-        className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
-      >
-        CERRAR
-      </button>
-      <button
-        type="submit"
-        form="form-cotizar"
-        className="bg-green-700 text-white border-2 border-green-500 px-4 py-1 rounded-full"
-      >
-        COTIZAR
-      </button>
-    </>
-  );
-
-  const resultContent = (
-    <div className="w-full max-w-2xl rounded-lg p-6 bg-black text-white text-center space-y-4">
-      <h2 className="text-2xl font-bold text-green-500 mb-4">RESULTADO</h2>
-      <p
-        className={
-          result === "success"
-            ? "text-green-400 text-xl "
-            : "text-red-400 text-xl"
-        }
-      >
-        {statusMsg}
-      </p>
-      <div className="flex justify-center gap-4">
-        {result === "success" ? (
-          <button
-            onClick={onClose}
-            className="bg-red-700 px-4 py-2 rounded-md text-white"
-          >
-            Cerrar
-          </button>
-        ) : (
-          <>
-            <button
-              onClick={() => setResult(null)}
-              className="bg-yellow-600 px-4 py-2 rounded-md text-white"
-            >
-              Reintentar
-            </button>
-            <button
-              onClick={onClose}
-              className="bg-red-700 px-4 py-2 rounded-md text-white"
-            >
-              Cerrar
-            </button>
-          </>
-        )}
-      </div>
-    </div>
-  );
-
   return (
-    <ModalWrapper title="COTIZAR" onClose={onClose} actionButtons={'actionButtons'} id="form-cotizar">
+    <ModalWrapper 
+      title="COTIZAR" 
+      onClose={onClose} 
+      id={result ? undefined : "form-cotizar"}
+      hideDefaultButtons={!!result}
+    >
       {result ? resultContent : cotizarForm}
     </ModalWrapper>
   );

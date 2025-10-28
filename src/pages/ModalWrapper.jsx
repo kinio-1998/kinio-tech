@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Logo from "./Logo";
 
-export default function ModalWrapper({ title, onClose, children, id }) {
+export default function ModalWrapper({ title, onClose, children, id, isLoading, loadingText, hideDefaultButtons = false }) {
   const navigate = useNavigate();
 
   const handleClose = () => {
@@ -25,23 +25,28 @@ export default function ModalWrapper({ title, onClose, children, id }) {
         </div>
 
         {/* botones siempre visibles */}
-        <div className="flex justify-between mt-4">
-          <button
-            type="button"
-            onClick={handleClose}
-            className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
-          >
-            CERRAR
-          </button>
+        {!hideDefaultButtons && (
+          <div className="flex justify-between mt-4">
+            <button
+              type="button"
+              onClick={handleClose}
+              className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
+            >
+              CERRAR
+            </button>
 
-          <button
-            type="submit"
-            form={id} // 👉 aquí se hace el submit del form del padre
-            className="bg-green-700 text-white border-2 border-green-500 px-4 py-1 rounded-full"
-          >
-            {title}
-          </button>
-        </div>
+            {id && (
+              <button
+                type="submit"
+                form={id} // 👉 aquí se hace el submit del form del padre
+                disabled={isLoading}
+                className="bg-green-700 text-white border-2 border-green-500 px-4 py-1 rounded-full disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isLoading ? (loadingText || 'Cargando...') : title}
+              </button>
+            )}
+          </div>
+        )}
 
         <button
           onClick={onClose}

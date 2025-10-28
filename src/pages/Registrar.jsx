@@ -120,27 +120,8 @@ export default function Registrar({ onClose }) {
     </form>
   );
 
-  const actionButtons = (
-    <>
-      <button
-        type="submit"
-        form="form-registrar"
-        className="bg-green-700 text-white border-2 border-green-500 px-4 py-1 rounded-full"
-      >
-        REGISTRAR
-      </button>
-      <button
-        type="button"
-        onClick={onClose}
-        className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded-full"
-      >
-        CERRAR
-      </button>
-    </>
-  );
-
   return (
-    <ModalWrapper title="REGISTRAR" onClose={onClose} actionButtons={actionButtons}>
+    <ModalWrapper title="REGISTRAR" onClose={onClose} id="form-registrar">
       {registrarForm}
     </ModalWrapper>
   );

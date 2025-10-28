@@ -113,7 +113,7 @@ export default function Publicar({ onClose }) {
   }
 
   const form = (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form id="form-publicar" onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-4 sm:space-y-6">
         <div className="space-y-2">
           <label className="block text-sm text-green-300">Imagen - Antes</label>
@@ -233,25 +233,15 @@ export default function Publicar({ onClose }) {
     </form>
   );
 
-  const actionButtons = (
-    <>
-      <button type="submit" form="publicar-form" disabled={uploading} className="px-4 py-2 bg-green-600 text-black font-bold rounded">
-        {uploading ? `Enviando... ${progress}%` : 'Enviar y publicar'}
-      </button>
-      <button type="button" onClick={() => { resetForm(); onClose(); }} className="px-4 py-2 border border-green-600 text-green-600 rounded">
-        Cancelar
-      </button>
-    </>
-  );
-
   return (
     <ModalWrapper
       title="PUBLICAR"
       onClose={onClose}
-      actionButtons={actionButtons}
+      id="form-publicar"
+      isLoading={uploading}
+      loadingText={`Enviando... ${progress}%`}
     >
-      {/* Attach form id for actionButtons to work */}
-      {React.cloneElement(form, { id: 'publicar-form' })}
+      {form}
     </ModalWrapper>
   );
 }
