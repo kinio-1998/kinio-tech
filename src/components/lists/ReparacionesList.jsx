@@ -129,12 +129,12 @@ export default function ReparacionesList({ onClose }) {
 
   // Función para entregar equipo
   const handleEntregar = () => {
-    const { folio, contrasena } = entregarData;
+    const { folio } = entregarData;
     
-    if (!folio || !contrasena) {
+    if (!folio) {
       setEntregarData(prev => ({ 
         ...prev, 
-        resultado: 'Ingrese folio y contraseña.' 
+        resultado: 'Error: No se ha especificado el folio.' 
       }));
       return;
     }
@@ -156,12 +156,18 @@ export default function ReparacionesList({ onClose }) {
       return;
     }
 
-    // Aquí iría la validación de contraseña con el backend
+    // Cambiar estado a entregado
     cambiarEstado(folio, ESTADOS_REPARACION.ENTREGADO);
     setEntregarData(prev => ({ 
       ...prev, 
-      resultado: `Folio ${folio} entregado exitosamente.` 
+      resultado: `✅ Folio ${folio} entregado exitosamente.` 
     }));
+    
+    // Cerrar modal después de 1.5 segundos
+    setTimeout(() => {
+      setShowEntregarModal(false);
+      setEntregarData({ folio: '', contrasena: '', resultado: '' });
+    }, 1500);
   };
 
   // Configuración de columnas para BaseList
@@ -362,57 +368,78 @@ export default function ReparacionesList({ onClose }) {
               </button>
             </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="text-green-300 block mb-2">FOLIO:</label>
-                <input
-                  type="text"
-                  value={entregarData.folio}
-                  onChange={(e) => setEntregarData(prev => ({ ...prev, folio: e.target.value }))}
-                  className="w-full bg-black border-2 border-green-700 text-white px-3 py-2 rounded"
-                  placeholder="Ingrese folio"
-                />
-              </div>
+            {(() => {
+              const reparacion = reparaciones.find(r => r.folio === entregarData.folio);
+              return (
+                <div className="space-y-4">
+                  {reparacion ? (
+                    <>
+                      {/* Datos del equipo */}
+                      <div className="bg-green-900/20 border border-green-600 rounded-lg p-4">
+                        <h4 className="text-green-400 font-semibold mb-3">Confirmar Entrega</h4>
+                        <div className="space-y-2 text-white">
+                          <p><strong className="text-green-300">Folio:</strong> {reparacion.folio}</p>
+                          <p><strong className="text-green-300">Cliente:</strong> {reparacion.cliente_nombre}</p>
+                          <p><strong className="text-green-300">Equipo:</strong> {reparacion.equipo_tipo} {reparacion.equipo_marca}</p>
+                          <p><strong className="text-green-300">Problema:</strong> {reparacion.problema}</p>
+                          <p><strong className="text-green-300">Estado:</strong> 
+                            <span className={`ml-2 px-2 py-1 rounded text-xs ${ESTADOS_COLORS[reparacion.estado]}`}>
+                              {ESTADOS_LABELS[reparacion.estado]}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
 
-              <div>
-                <label className="text-green-300 block mb-2">CONTRASEÑA DEL CLIENTE:</label>
-                <input
-                  type="password"
-                  value={entregarData.contrasena}
-                  onChange={(e) => setEntregarData(prev => ({ ...prev, contrasena: e.target.value }))}
-                  className="w-full bg-black border-2 border-green-700 text-white px-3 py-2 rounded"
-                  placeholder="Contraseña"
-                />
-              </div>
+                      {entregarData.resultado && (
+                        <div className={`p-3 rounded ${
+                          entregarData.resultado.includes('exitosamente') 
+                            ? 'text-green-400 border border-green-600 bg-green-900/20' 
+                            : 'text-red-400 border border-red-600 bg-red-900/20'
+                        }`}>
+                          {entregarData.resultado}
+                        </div>
+                      )}
 
-              {entregarData.resultado && (
-                <div className={`p-3 rounded ${
-                  entregarData.resultado.includes('exitosamente') 
-                    ? 'text-green-400 border border-green-600' 
-                    : 'text-red-400 border border-red-600'
-                }`}>
-                  {entregarData.resultado}
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => {
+                            setShowEntregarModal(false);
+                            setEntregarData({ folio: '', contrasena: '', resultado: '' });
+                          }}
+                          className="bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
+                        >
+                          Cancelar
+                        </button>
+                        <button
+                          onClick={handleEntregar}
+                          disabled={reparacion.estado !== ESTADOS_REPARACION.LISTO}
+                          className={`px-4 py-2 rounded transition-colors ${
+                            reparacion.estado === ESTADOS_REPARACION.LISTO
+                              ? 'bg-green-700 hover:bg-green-600 text-white'
+                              : 'bg-gray-600 text-gray-400 cursor-not-allowed'
+                          }`}
+                        >
+                          📦 Entregar
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-4">
+                      <p className="text-red-400">Error: No se encontró información del equipo</p>
+                      <button
+                        onClick={() => {
+                          setShowEntregarModal(false);
+                          setEntregarData({ folio: '', contrasena: '', resultado: '' });
+                        }}
+                        className="mt-4 bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
+                      >
+                        Cerrar
+                      </button>
+                    </div>
+                  )}
                 </div>
-              )}
-
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => {
-                    setShowEntregarModal(false);
-                    setEntregarData({ folio: '', contrasena: '', resultado: '' });
-                  }}
-                  className="bg-red-800 hover:bg-red-700 text-white px-4 py-2 rounded transition-colors"
-                >
-                  Cancelar
-                </button>
-                <button
-                  onClick={handleEntregar}
-                  className="bg-green-700 hover:bg-green-600 text-white px-4 py-2 rounded transition-colors"
-                >
-                  Entregar
-                </button>
-              </div>
-            </div>
+              );
+            })()}
           </div>
         </div>
       )}

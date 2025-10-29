@@ -19,6 +19,12 @@ export default function BaseList({
   const [sortField, setSortField] = useState('');
   const [sortDirection, setSortDirection] = useState('asc');
 
+  // Función auxiliar para obtener valores anidados
+  const getNestedValue = (obj, path) => {
+    if (!obj || !path) return '';
+    return path.split('.').reduce((current, key) => current?.[key], obj) || '';
+  };
+
   // Filtrar datos basado en búsqueda
   const filteredData = data.filter(item => {
     // Filtro de búsqueda
@@ -53,11 +59,6 @@ export default function BaseList({
     const comparison = aValue < bValue ? -1 : 1;
     return sortDirection === 'asc' ? comparison : -comparison;
   });
-
-  // Función auxiliar para obtener valores anidados
-  const getNestedValue = (obj, path) => {
-    return path.split('.').reduce((current, key) => current?.[key], obj);
-  };
 
   // Manejar ordenamiento
   const handleSort = (field) => {
