@@ -4,7 +4,7 @@ import BaseList from './BaseList';
 import { API } from '../../utils/api';
 import { ESTADOS_REPARACION, ESTADOS_LABELS, ESTADOS_COLORS, formatDate, formatDateTime } from '../../utils/constants';
 
-export default function ReparacionesList({ onClose }) {
+export default function ReparacionesList({ onClose, noOverlay }) {
   const [reparaciones, setReparaciones] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedReparacion, setSelectedReparacion] = useState(null);
@@ -261,7 +261,7 @@ export default function ReparacionesList({ onClose }) {
   };
 
   return (
-    <ModalWrapper title="GESTIÓN DE REPARACIONES" onClose={onClose}>
+    <ModalWrapper title="GESTIÓN DE REPARACIONES" onClose={onClose} noOverlay={noOverlay}>
       <div className="space-y-4 max-h-96 overflow-y-auto custom-scroll">
 
         {/* Lista principal de reparaciones */}

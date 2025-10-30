@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import ModalWrapper from "../modals/ModalWrapper";
+import ClienteDataForm from "../common/ClienteDataForm";
 import { ESTADOS_REPARACION } from "../../utils/constants";
 
 // Simulación de servicios por categoría de equipo desde BD
@@ -121,7 +122,7 @@ const COMPONENTES_SIMULADOS = {
   ],
 };
 
-export default function NuevaReparacionForm({ onClose }) {
+export default function NuevaReparacionForm({ onClose, noOverlay }) {
   const [form, setForm] = useState({
     cliente_nombre: "",
     cliente_correo: "",
@@ -146,18 +147,24 @@ export default function NuevaReparacionForm({ onClose }) {
   const [clienteBusqueda, setClienteBusqueda] = useState("");
   const [clientesEncontrados, setClientesEncontrados] = useState([]);
   const [clienteSeleccionado, setClienteSeleccionado] = useState(null);
-  const [esClienteNuevo, setEsClienteNuevo] = useState(true); // Toggle Cliente Nuevo
-  const [mostrarModalBusqueda, setMostrarModalBusqueda] = useState(false);
-  const [mostrarModalServicios, setMostrarModalServicios] = useState(false);
   
   const [serviciosDisponibles, setServiciosDisponibles] = useState([]);
   const [componentesDisponibles, setComponentesDisponibles] = useState([]);
   const [formErrors, setFormErrors] = useState({});
   const [result, setResult] = useState(null);
   const [statusMsg, setStatusMsg] = useState("");
+  
+  // Estado para controlar si es cliente nuevo o existente
+  const [esClienteNuevo, setEsClienteNuevo] = useState(true);
 
   // Estado para mostrar grid de componentes cuando se selecciona "Armado de PC"
   const [mostrarComponentes, setMostrarComponentes] = useState(false);
+  
+  // Estado para mostrar modal de selección de servicios
+  const [mostrarModalServicios, setMostrarModalServicios] = useState(false);
+  
+  // Estado para mostrar modal de búsqueda de cliente
+  const [mostrarModalBusqueda, setMostrarModalBusqueda] = useState(false);
 
   useEffect(() => {
     setComponentesDisponibles(COMPONENTES_SIMULADOS);
@@ -216,26 +223,12 @@ export default function NuevaReparacionForm({ onClose }) {
       cliente_correo: cliente.correo,
       cliente_telefono: cliente.telefono
     }));
-    setMostrarModalBusqueda(false);
     setClienteBusqueda("");
   };
 
-  // Manejar toggle de cliente nuevo
-  const handleClienteNuevoChange = (esNuevo) => {
-    setEsClienteNuevo(esNuevo);
-    if (esNuevo) {
-      // Limpiar datos de cliente seleccionado
-      setClienteSeleccionado(null);
-      setForm(prev => ({
-        ...prev,
-        cliente_nombre: "",
-        cliente_correo: "",
-        cliente_telefono: ""
-      }));
-    } else {
-      // Abrir modal de búsqueda
-      setMostrarModalBusqueda(true);
-    }
+  // Manejar cambio en búsqueda de cliente
+  const handleClienteBusquedaChange = (e) => {
+    setClienteBusqueda(e.target.value);
   };
 
   // Manejar cambios en el formulario
@@ -514,43 +507,43 @@ export default function NuevaReparacionForm({ onClose }) {
 
   // Modal de búsqueda de clientes
   const modalBusquedaCliente = (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-black border-2 border-green-500 rounded-md p-6 w-96 max-h-96">
-        <h3 className="text-green-300 font-bold mb-4">BUSCAR CLIENTE EXISTENTE</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2">
+      <div className="bg-black border-2 border-green-500 rounded-md p-3 sm:p-6 w-full max-w-sm sm:max-w-md max-h-[90vh] flex flex-col">
+        <h3 className="text-green-300 font-bold mb-2 sm:mb-4 text-sm sm:text-base">BUSCAR CLIENTE EXISTENTE</h3>
         
-        <div className="mb-4">
+        <div className="mb-2 sm:mb-4">
           <input
             type="text"
             value={clienteBusqueda}
             onChange={(e) => buscarClientes(e.target.value)}
             placeholder="Buscar por nombre, correo o teléfono"
-            className="bg-black border-2 border-green-700 text-white px-2 py-1 w-full text-sm"
+            className="bg-black border-2 border-green-700 text-white px-2 py-1 w-full text-xs sm:text-sm"
             autoFocus
           />
         </div>
 
-        <div className="max-h-48 overflow-y-auto mb-4">
+        <div className="flex-1 overflow-auto custom-scroll mb-2 sm:mb-4 min-h-0">
           {clienteBusqueda.length > 2 ? (
             clientesEncontrados.length > 0 ? (
               clientesEncontrados.map(cliente => (
                 <div
                   key={cliente.id}
                   onClick={() => seleccionarCliente(cliente)}
-                  className="p-2 hover:bg-green-900 cursor-pointer text-white text-sm border-b border-green-800"
+                  className="p-2 hover:bg-green-900 cursor-pointer text-white text-xs sm:text-sm border-b border-green-800"
                 >
                   <div className="font-bold">{cliente.nombre}</div>
                   <div className="text-green-300 text-xs">{cliente.correo} - {cliente.telefono}</div>
                 </div>
               ))
             ) : (
-              <p className="text-yellow-300 text-sm text-center">No se encontraron clientes</p>
+              <p className="text-yellow-300 text-xs sm:text-sm text-center">No se encontraron clientes</p>
             )
           ) : (
-            <p className="text-gray-400 text-sm text-center">Escriba al menos 3 caracteres para buscar</p>
+            <p className="text-gray-400 text-xs sm:text-sm text-center">Escriba al menos 3 caracteres para buscar</p>
           )}
         </div>
 
-        <div className="flex gap-2 justify-end">
+        <div className="flex gap-2 justify-end flex-shrink-0">
           <button
             type="button"
             onClick={() => {
@@ -558,7 +551,7 @@ export default function NuevaReparacionForm({ onClose }) {
               setClienteBusqueda("");
               setEsClienteNuevo(true);
             }}
-            className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded"
+            className="bg-red-800 text-white border-2 border-red-600 px-2 sm:px-4 py-1 rounded text-xs sm:text-sm"
           >
             CANCELAR
           </button>
@@ -569,18 +562,18 @@ export default function NuevaReparacionForm({ onClose }) {
 
   // Modal de selección de servicios
   const modalSeleccionServicios = (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-black border-2 border-green-500 rounded-md p-6 w-2/3 max-w-4xl max-h-96">
-        <h3 className="text-green-300 font-bold mb-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-2">
+      <div className="bg-black border-2 border-green-500 rounded-md p-3 sm:p-6 w-full max-w-4xl max-h-[90vh] flex flex-col">
+        <h3 className="text-green-300 font-bold mb-2 sm:mb-4 text-sm sm:text-base">
           SERVICIOS DISPONIBLES {form.equipo_tipo && `PARA ${form.equipo_tipo.toUpperCase()}`}
         </h3>
         
         {!form.equipo_tipo ? (
-          <p className="text-yellow-300 text-sm italic mb-4">Seleccione el tipo de equipo primero</p>
+          <p className="text-yellow-300 text-xs sm:text-sm italic mb-2 sm:mb-4">Seleccione el tipo de equipo primero</p>
         ) : serviciosDisponibles.length === 0 ? (
-          <p className="text-yellow-300 text-sm italic mb-4">No hay servicios disponibles para este tipo de equipo</p>
+          <p className="text-yellow-300 text-xs sm:text-sm italic mb-2 sm:mb-4">No hay servicios disponibles para este tipo de equipo</p>
         ) : (
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-3 max-h-64 overflow-y-auto mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1 overflow-auto custom-scroll mb-2 sm:mb-4 min-h-0">
             {serviciosDisponibles.map(servicio => (
               <label
                 key={servicio.id}
@@ -596,7 +589,7 @@ export default function NuevaReparacionForm({ onClose }) {
                   onChange={() => handleServicioChange(servicio.id)}
                   className="w-4 h-4 mt-0.5 flex-shrink-0"
                 />
-                <span className="text-white text-sm">
+                <span className="text-white text-xs sm:text-sm">
                   <span className="font-medium block">{servicio.nombre}</span>
                   <span className="text-green-400">${servicio.precio}</span>
                 </span>
@@ -605,15 +598,15 @@ export default function NuevaReparacionForm({ onClose }) {
           </div>
         )}
 
-        <div className="flex gap-2 justify-between items-center">
-          <span className="text-green-300 text-sm">
+        <div className="flex gap-2 justify-between items-center flex-shrink-0 flex-wrap">
+          <span className="text-green-300 text-xs sm:text-sm">
             Servicios seleccionados: {form.servicios_seleccionados.length}
           </span>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => setMostrarModalServicios(false)}
-              className="bg-green-700 text-white border-2 border-green-600 px-4 py-1 rounded"
+              className="bg-green-700 text-white border-2 border-green-600 px-2 sm:px-4 py-1 rounded text-xs sm:text-sm"
             >
               CONFIRMAR
             </button>
@@ -623,7 +616,7 @@ export default function NuevaReparacionForm({ onClose }) {
                 setMostrarModalServicios(false);
                 setForm(prev => ({ ...prev, servicios_seleccionados: [] }));
               }}
-              className="bg-red-800 text-white border-2 border-red-600 px-4 py-1 rounded"
+              className="bg-red-800 text-white border-2 border-red-600 px-2 sm:px-4 py-1 rounded text-xs sm:text-sm"
             >
               CANCELAR
             </button>
@@ -635,198 +628,95 @@ export default function NuevaReparacionForm({ onClose }) {
 
   // Formulario principal
   const reparacionForm = (
-    <form
-      id="form-reparacion"
-      onSubmit={handleSubmit}
-      className="bg-black border-2 border-green-500 rounded-md p-3"
-    >
-      {/* Toggle Cliente Nuevo - Más compacto */}
-      <div className="mb-3">
-        <div className="flex items-center gap-4 mb-2">
-          <label className="flex items-center gap-2 text-green-300">
-            <input
-              type="radio"
-              name="tipoCliente"
-              checked={esClienteNuevo}
-              onChange={() => handleClienteNuevoChange(true)}
-              className="w-4 h-4"
-            />
-            <span className="text-xs">CLIENTE NUEVO</span>
-          </label>
-          <label className="flex items-center gap-2 text-green-300">
-            <input
-              type="radio"
-              name="tipoCliente"
-              checked={!esClienteNuevo}
-              onChange={() => handleClienteNuevoChange(false)}
-              className="w-4 h-4"
-            />
-            <span className="text-xs">CLIENTE EXISTENTE</span>
-          </label>
-        </div>
-        
-        {/* Cliente seleccionado - Más compacto */}
-        {!esClienteNuevo && clienteSeleccionado && (
-          <div className="p-2 bg-green-900 bg-opacity-30 border border-green-700 rounded text-xs">
-            <div className="text-white flex justify-between items-center">
-              <div>
-                <span className="font-bold">{clienteSeleccionado.nombre}</span>
-                <span className="text-green-300 ml-2">{clienteSeleccionado.telefono}</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => setMostrarModalBusqueda(true)}
-                className="bg-yellow-600 text-white px-2 py-1 rounded text-xs"
-              >
-                CAMBIAR
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
+    <div className="max-h-[60vh] overflow-auto custom-scroll">
+      <form
+        id="form-reparacion"
+        onSubmit={handleSubmit}
+        className="bg-black border-2 border-green-500 rounded-md p-2 sm:p-3 space-y-2 sm:space-y-3"
+      >
+        {/* Datos del cliente */}
+        <ClienteDataForm
+          form={form}
+          setForm={setForm}
+          formErrors={formErrors}
+          handleChange={handleChange}
+          includeEquipoTipo={false}
+          nombreField="cliente_nombre"
+          correoField="cliente_correo"
+          telefonoField="cliente_telefono"
+        />
 
-      {/* Formulario en 3 columnas */}
-      <div className="grid grid-cols-3 gap-4 mb-3">
+      {/* Formulario en 3 columnas - Responsivo */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4 mb-2 sm:mb-3">
         
-        {/* COLUMNA 1: DATOS DEL CLIENTE */}
-        <div className="space-y-2">
-          <h3 className="text-green-300 font-bold text-sm mb-2">
-            {esClienteNuevo ? 'DATOS DEL CLIENTE' : 'DATOS DEL EQUIPO'}
-          </h3>
+        {/* COLUMNA 1: DATOS DEL EQUIPO */}
+        <div className="space-y-1 sm:space-y-2">
+          <h3 className="text-green-300 font-bold text-xs sm:text-sm mb-1 sm:mb-2">DATOS DEL EQUIPO</h3>
           
-          {esClienteNuevo ? (
-            <>
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">NOMBRE:</span>
-                <div className="relative">
-                  <input
-                    type="text"
-                    name="cliente_nombre"
-                    value={form.cliente_nombre}
-                    onChange={handleChange}
-                    className={`bg-black border ${formErrors.cliente_nombre ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-xs`}
-                  />
-                  {formErrors.cliente_nombre && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
+          <label className="flex flex-col text-green-300 gap-1">
+            <span className="text-xs">TIPO:</span>
+            <div className="relative">
+              <select
+                name="equipo_tipo"
+                value={form.equipo_tipo}
+                onChange={handleChange}
+                className={`bg-black border ${formErrors.equipo_tipo ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-xs`}
+              >
+                <option value="">Seleccione tipo</option>
+                <option value="Desktop">Desktop</option>
+                <option value="Laptop">Laptop</option>
+                <option value="Celular">Celular</option>
+                <option value="Tablet">Tablet</option>
+                <option value="All-in-One">All-in-One</option>
+                <option value="Servidor">Servidor</option>
+              </select>
+              {formErrors.equipo_tipo && (
+                <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
                 </div>
-              </label>
+              )}
+            </div>
+          </label>
 
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">CORREO:</span>
-                <div className="relative">
-                  <input
-                    type="email"
-                    name="cliente_correo"
-                    value={form.cliente_correo}
-                    onChange={handleChange}
-                    className={`bg-black border ${formErrors.cliente_correo ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-xs`}
-                  />
-                  {formErrors.cliente_correo && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </label>
+          <label className="flex flex-col text-green-300 gap-1">
+            <span className="text-xs">MARCA:</span>
+            <input
+              type="text"
+              name="equipo_marca"
+              value={form.equipo_marca}
+              onChange={handleChange}
+              className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
+            />
+          </label>
 
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">TELÉFONO:</span>
-                <div className="relative">
-                  <input
-                    type="tel"
-                    name="cliente_telefono"
-                    value={form.cliente_telefono}
-                    onChange={handleChange}
-                    className={`bg-black border ${formErrors.cliente_telefono ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-xs`}
-                    minLength={10}
-                    maxLength={10}
-                    pattern="\d{10}"
-                  />
-                  {formErrors.cliente_telefono && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </label>
-            </>
-          ) : (
-            <>
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">TIPO:</span>
-                <div className="relative">
-                  <select
-                    name="equipo_tipo"
-                    value={form.equipo_tipo}
-                    onChange={handleChange}
-                    className={`bg-black border ${formErrors.equipo_tipo ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-xs`}
-                  >
-                    <option value="">Seleccione tipo</option>
-                    <option value="Desktop">Desktop</option>
-                    <option value="Laptop">Laptop</option>
-                    <option value="Celular">Celular</option>
-                    <option value="Tablet">Tablet</option>
-                    <option value="All-in-One">All-in-One</option>
-                    <option value="Servidor">Servidor</option>
-                  </select>
-                  {formErrors.equipo_tipo && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </label>
+          <label className="flex flex-col text-green-300 gap-1">
+            <span className="text-xs">MODELO:</span>
+            <input
+              type="text"
+              name="equipo_modelo"
+              value={form.equipo_modelo}
+              onChange={handleChange}
+              className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
+            />
+          </label>
 
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">MARCA:</span>
-                <input
-                  type="text"
-                  name="equipo_marca"
-                  value={form.equipo_marca}
-                  onChange={handleChange}
-                  className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
-                />
-              </label>
-
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">MODELO:</span>
-                <input
-                  type="text"
-                  name="equipo_modelo"
-                  value={form.equipo_modelo}
-                  onChange={handleChange}
-                  className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
-                />
-              </label>
-
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">SERIE:</span>
-                <input
-                  type="text"
-                  name="equipo_serie"
-                  value={form.equipo_serie}
-                  onChange={handleChange}
-                  className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
-                />
-              </label>
-            </>
-          )}
+          <label className="flex flex-col text-green-300 gap-1">
+            <span className="text-xs">SERIE:</span>
+            <input
+              type="text"
+              name="equipo_serie"
+              value={form.equipo_serie}
+              onChange={handleChange}
+              className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
+            />
+          </label>
         </div>
 
         {/* COLUMNA 2: DATOS DEL EQUIPO O PROBLEMA */}
-        <div className="space-y-2">
-          <h3 className="text-green-300 font-bold text-sm mb-2">
+        <div className="space-y-1 sm:space-y-2">
+          <h3 className="text-green-300 font-bold text-xs sm:text-sm mb-1 sm:mb-2">
             {esClienteNuevo ? 'DATOS DEL EQUIPO' : 'PROBLEMA Y SERVICIOS'}
           </h3>
           
@@ -901,8 +791,8 @@ export default function NuevaReparacionForm({ onClose }) {
                     name="problema"
                     value={form.problema}
                     onChange={handleChange}
-                    rows={4}
-                    className={`bg-black border ${formErrors.problema ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-xs resize-none`}
+                    rows={3}
+                    className={`bg-black border ${formErrors.problema ? 'border-red-600' : 'border-green-700'} text-white px-1 sm:px-2 py-1 w-full text-xs resize-none`}
                     placeholder="Describa el problema del equipo"
                   />
                   {formErrors.problema && (
@@ -922,12 +812,21 @@ export default function NuevaReparacionForm({ onClose }) {
                   <button
                     type="button"
                     onClick={() => setMostrarModalServicios(true)}
-                    className="bg-green-700 text-white px-2 py-1 rounded text-xs"
+                    className={`px-2 py-1 rounded text-xs ${
+                      !form.equipo_tipo 
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                        : 'bg-green-700 text-white hover:bg-green-600'
+                    }`}
                     disabled={!form.equipo_tipo}
+                    title={!form.equipo_tipo ? "Seleccione el tipo de equipo primero" : "Seleccionar servicios"}
                   >
                     SELECCIONAR
                   </button>
                 </div>
+                
+                {!form.equipo_tipo && (
+                  <p className="text-yellow-400 text-xs italic">Seleccione el tipo de equipo para ver servicios disponibles</p>
+                )}
                 
                 {formErrors.servicios_seleccionados && (
                   <p className="text-red-400 text-xs">{formErrors.servicios_seleccionados}</p>
@@ -956,8 +855,8 @@ export default function NuevaReparacionForm({ onClose }) {
         </div>
 
         {/* COLUMNA 3: PROBLEMA/SERVICIOS O PRECIOS */}
-        <div className="space-y-2">
-          <h3 className="text-green-300 font-bold text-sm mb-2">
+        <div className="space-y-1 sm:space-y-2">
+          <h3 className="text-green-300 font-bold text-xs sm:text-sm mb-1 sm:mb-2">
             {esClienteNuevo ? 'PROBLEMA Y SERVICIOS' : 'PRECIOS Y OBSERVACIONES'}
           </h3>
           
@@ -991,12 +890,21 @@ export default function NuevaReparacionForm({ onClose }) {
                   <button
                     type="button"
                     onClick={() => setMostrarModalServicios(true)}
-                    className="bg-green-700 text-white px-2 py-1 rounded text-xs"
+                    className={`px-2 py-1 rounded text-xs ${
+                      !form.equipo_tipo 
+                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
+                        : 'bg-green-700 text-white hover:bg-green-600'
+                    }`}
                     disabled={!form.equipo_tipo}
+                    title={!form.equipo_tipo ? "Seleccione el tipo de equipo primero" : "Seleccionar servicios"}
                   >
                     SELECCIONAR
                   </button>
                 </div>
+                
+                {!form.equipo_tipo && (
+                  <p className="text-yellow-400 text-xs italic">Seleccione el tipo de equipo para ver servicios disponibles</p>
+                )}
                 
                 {formErrors.servicios_seleccionados && (
                   <p className="text-red-400 text-xs">{formErrors.servicios_seleccionados}</p>
@@ -1055,28 +963,28 @@ export default function NuevaReparacionForm({ onClose }) {
 
       {/* Grid de Componentes (solo si se selecciona Armado de PC) */}
       {mostrarComponentes && (
-        <div className="mb-3 bg-black border border-green-700 rounded p-2">
-          <h4 className="text-green-300 font-bold text-sm mb-2">COMPONENTES REQUERIDOS</h4>
+        <div className="mb-2 sm:mb-3 bg-black border border-green-700 rounded p-1 sm:p-2">
+          <h4 className="text-green-300 font-bold text-xs sm:text-sm mb-1 sm:mb-2">COMPONENTES REQUERIDOS</h4>
           
-          <div className="grid grid-cols-12 gap-1 sm:gap-2 text-xs sm:text-sm text-green-300 border-b border-green-700 pb-2 mb-2">
+          <div className="grid grid-cols-12 gap-1 sm:gap-2 text-xs text-green-300 border-b border-green-700 pb-1 mb-1 sm:pb-2 sm:mb-2">
             <div className="col-span-6 truncate">CONCEPTO</div>
             <div className="col-span-2 text-center truncate">CANTIDAD</div>
             <div className="col-span-3 text-center truncate">PRECIO</div>
             <div className="col-span-1" />
           </div>
 
-          <div className={items.length >= 3 ? "space-y-2 max-h-24 md:max-h-28 overflow-auto custom-scroll" : "space-y-2"}>
+          <div className={items.length >= 3 ? "space-y-1 sm:space-y-2 max-h-20 sm:max-h-24 md:max-h-28 overflow-auto custom-scroll" : "space-y-1 sm:space-y-2"}>
             {items.map((it, index) => (
               <div
                 key={it.id}
-                className="grid grid-cols-12 gap-1 sm:gap-2 items-center text-white text-xs sm:text-sm"
+                className="grid grid-cols-12 gap-1 sm:gap-2 items-center text-white text-xs"
               >
                 <div className="col-span-6 relative">
                   <input
                     value={it.concepto}
                     onChange={(e) => updateRow(it.id, "concepto", e.target.value)}
                     placeholder="Concepto"
-                    className={`w-full bg-black border ${itemErrors[index]?.concepto ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-xs sm:text-sm`}
+                    className={`w-full bg-black border ${itemErrors[index]?.concepto ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-xs`}
                   />
                   {itemErrors[index]?.concepto && (
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
@@ -1095,7 +1003,7 @@ export default function NuevaReparacionForm({ onClose }) {
                     value={it.cantidad}
                     min="1"
                     onChange={(e) => updateRow(it.id, "cantidad", e.target.value)}
-                    className={`w-full bg-black border ${itemErrors[index]?.cantidad ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-center text-xs sm:text-sm`}
+                    className={`w-full bg-black border ${itemErrors[index]?.cantidad ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-center text-xs`}
                   />
                   {itemErrors[index]?.cantidad && (
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
@@ -1115,7 +1023,7 @@ export default function NuevaReparacionForm({ onClose }) {
                     min="0"
                     step="0.01"
                     onChange={(e) => updateRow(it.id, "precio", e.target.value)}
-                    className={`w-full bg-black border ${itemErrors[index]?.precio ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-right text-xs sm:text-sm`}
+                    className={`w-full bg-black border ${itemErrors[index]?.precio ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-right text-xs`}
                   />
                   {itemErrors[index]?.precio && (
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
@@ -1139,7 +1047,7 @@ export default function NuevaReparacionForm({ onClose }) {
             ))}
           </div>
 
-          <div className="mt-2 flex items-center justify-between">
+          <div className="mt-1 sm:mt-2 flex items-center justify-between">
             <button
               type="button"
               onClick={addRow}
@@ -1156,8 +1064,8 @@ export default function NuevaReparacionForm({ onClose }) {
       )}
 
       {/* Totales finales - Siempre al final de todo */}
-      <div className="mt-3 pt-2 border-t border-green-700">
-        <div className="grid grid-cols-2 gap-4 text-xs">
+      <div className="mt-2 sm:mt-3 pt-2 border-t border-green-700">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs">
           <div className="space-y-1">
             <div className="flex justify-between">
               <span className="text-green-300">Servicios:</span>
@@ -1190,7 +1098,8 @@ export default function NuevaReparacionForm({ onClose }) {
           </div>
         </div>
       </div>
-    </form>
+      </form>
+    </div>
   );
 
   return (
@@ -1200,7 +1109,8 @@ export default function NuevaReparacionForm({ onClose }) {
         onClose={onClose}
         id={result ? undefined : "form-reparacion"}
         hideDefaultButtons={!!result}
-        className="w-full max-w-7xl"
+        className="w-full max-w-7xl h-full max-h-[95vh]"
+        noOverlay={noOverlay}
       >
         {result ? resultContent : reparacionForm}
       </ModalWrapper>

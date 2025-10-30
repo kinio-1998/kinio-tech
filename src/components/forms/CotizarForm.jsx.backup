@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import ModalWrapper from "../modals/ModalWrapper";
-import ClienteDataForm from "../common/ClienteDataForm";
 
 // Simulación de servicios por categoría de equipo desde BD
 const SERVICIOS_POR_CATEGORIA = {
@@ -439,17 +438,118 @@ export default function Cotizar({ onClose, noOverlay }) {
       className="bg-black border-2 border-green-500 rounded-md p-4"
     >
       {/* datos cliente en grid compacto */}
-      <ClienteDataForm
-        form={form}
-        setForm={setForm}
-        formErrors={formErrors}
-        handleChange={handleChange}
-        includeEquipoTipo={true}
-        nombreField="nombre"
-        correoField="correo"
-        telefonoField="telefono"
-        equipoTipoField="equipo_tipo"
-      />
+      <div className="mb-4">
+        <h3 className="text-green-300 font-semibold mb-3 text-lg">DATOS DEL CLIENTE</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Nombre */}
+          <div className="space-y-1">
+            <label className="text-green-300 text-sm font-medium">NOMBRE:</label>
+            <div className="relative">
+              <input
+                type="text"
+                name="nombre"
+                value={form.nombre}
+                onChange={handleChange}
+                placeholder="Nombre completo"
+                className={`bg-black border-2 ${formErrors.nombre ? 'border-red-600' : 'border-green-700'} text-white px-2 py-2 w-full text-sm`}
+              />
+              {formErrors.nombre && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                    {formErrors.nombre}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Correo */}
+          <div className="space-y-1">
+            <label className="text-green-300 text-sm font-medium">CORREO:</label>
+            <div className="relative">
+              <input
+                type="email"
+                name="correo"
+                value={form.correo}
+                onChange={handleChange}
+                placeholder="email@ejemplo.com"
+                className={`bg-black border-2 ${formErrors.correo ? 'border-red-600' : 'border-green-700'} text-white px-2 py-2 w-full text-sm`}
+              />
+              {formErrors.correo && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                    {formErrors.correo}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Teléfono */}
+          <div className="space-y-1">
+            <label className="text-green-300 text-sm font-medium">TELÉFONO:</label>
+            <div className="relative">
+              <input
+                type="tel"
+                name="telefono"
+                value={form.telefono}
+                onChange={handleChange}
+                placeholder="1234567890"
+                className={`bg-black border-2 ${formErrors.telefono ? 'border-red-600' : 'border-green-700'} text-white px-2 py-2 w-full text-sm`}
+                minLength={10}
+                maxLength={10}
+                pattern="\d{10}"
+              />
+              {formErrors.telefono && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                    {formErrors.telefono}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Tipo de Equipo */}
+          <div className="space-y-1">
+            <label className="text-green-300 text-sm font-medium">TIPO DE EQUIPO:</label>
+            <div className="relative">
+              <select
+                name="equipo_tipo"
+                value={form.equipo_tipo}
+                onChange={handleChange}
+                className={`bg-black border-2 ${formErrors.equipo_tipo ? 'border-red-600' : 'border-green-700'} text-white px-2 py-2 w-full text-sm`}
+              >
+                <option value="">Seleccione tipo</option>
+                <option value="Desktop">Desktop</option>
+                <option value="Laptop">Laptop</option>
+                <option value="Tablet">Tablet</option>
+                <option value="Smartphone">Smartphone</option>
+                <option value="Consola">Consola</option>
+              </select>
+              {formErrors.equipo_tipo && (
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
+                    {formErrors.equipo_tipo}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       {/* Servicios y componentes */}
       <div className="space-y-4">

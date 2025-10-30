@@ -4,7 +4,7 @@ import ModalWrapper from '../modals/ModalWrapper';
 
 const DEFAULT_BACKEND = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/publicar';
 
-export default function Publicar({ onClose }) {
+export default function Publicar({ onClose, noOverlay }) {
   const [beforeFile, setBeforeFile] = useState(null);
   const [duringFile, setDuringFile] = useState(null);
   const [afterFile, setAfterFile] = useState(null);
@@ -113,31 +113,32 @@ export default function Publicar({ onClose }) {
   }
 
   const form = (
-    <form id="form-publicar" onSubmit={handleSubmit} className="space-y-4">
-      <div className="space-y-4 sm:space-y-6">
-        <div className="space-y-2">
-          <label className="block text-sm text-green-300">Imagen - Antes</label>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
-            <div className="flex-grow">
-              <input
-                accept="image/*"
-                type="file"
-                onChange={(e) => handleFileChange(e, setBeforeFile, setBeforePreview)}
-                className="w-full"
-              />
-            </div>
-            {beforePreview && (
-              <div className="mt-2 sm:mt-0">
-                <img src={beforePreview} alt="Antes" className="w-36 h-24 object-cover rounded border border-green-600" />
+    <div className="h-full overflow-auto custom-scroll">
+      <form id="form-publicar" onSubmit={handleSubmit} className="space-y-2 sm:space-y-4 p-2 sm:p-3">
+        <div className="space-y-2 sm:space-y-4">
+          <div className="space-y-1 sm:space-y-2">
+            <label className="block text-xs sm:text-sm text-green-300">Imagen - Antes</label>
+            <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4">
+              <div className="flex-grow">
+                <input
+                  accept="image/*"
+                  type="file"
+                  onChange={(e) => handleFileChange(e, setBeforeFile, setBeforePreview)}
+                  className="w-full text-xs sm:text-sm"
+                />
               </div>
-            )}
+              {beforePreview && (
+                <div className="mt-2 sm:mt-0">
+                  <img src={beforePreview} alt="Antes" className="w-24 h-16 sm:w-36 sm:h-24 object-cover rounded border border-green-600" />
+                </div>
+              )}
+            </div>
           </div>
-        </div>
 
-        <div className="space-y-2">
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-green-300 text-sm flex items-center gap-3">
-              <span>Imagen - Durante</span>
+          <div className="space-y-1 sm:space-y-2">
+            <div className="flex items-center justify-between mb-1 sm:mb-2">
+              <label className="text-green-300 text-xs sm:text-sm flex items-center gap-2 sm:gap-3">
+                <span>Imagen - Durante</span>
               <div className="relative inline-flex items-center cursor-pointer">
                 <input
                   type="checkbox"
@@ -217,20 +218,27 @@ export default function Publicar({ onClose }) {
         </div>
       </div>
 
-      <div>
-        <label className="block text-sm text-green-300 mb-1">Comentario</label>
-        <textarea value={comment} onChange={(e) => setComment(e.target.value)} className="w-full bg-black border border-green-600 text-white p-2 rounded" rows={4} placeholder="Pequeña descripción..." />
-      </div>
-
-      {error && <div className="text-red-400">{error}</div>}
-      {success && <div className="text-green-400">{success}</div>}
-
-      {uploading && (
-        <div className="w-full bg-gray-700 rounded h-3 overflow-hidden">
-          <div className="bg-green-500 h-full" style={{ width: `${progress}%` }} />
+        <div>
+          <label className="block text-xs sm:text-sm text-green-300 mb-1">Comentario</label>
+          <textarea 
+            value={comment} 
+            onChange={(e) => setComment(e.target.value)} 
+            className="w-full bg-black border border-green-600 text-white p-2 rounded text-xs sm:text-sm" 
+            rows={3} 
+            placeholder="Pequeña descripción..." 
+          />
         </div>
-      )}
-    </form>
+
+        {error && <div className="text-red-400 text-xs sm:text-sm p-2 bg-red-900 bg-opacity-30 rounded border border-red-700">{error}</div>}
+        {success && <div className="text-green-400 text-xs sm:text-sm p-2 bg-green-900 bg-opacity-30 rounded border border-green-700">{success}</div>}
+
+        {uploading && (
+          <div className="w-full bg-gray-700 rounded h-2 sm:h-3 overflow-hidden">
+            <div className="bg-green-500 h-full transition-all duration-300" style={{ width: `${progress}%` }} />
+          </div>
+        )}
+      </form>
+    </div>
   );
 
   return (
@@ -240,6 +248,7 @@ export default function Publicar({ onClose }) {
       id="form-publicar"
       isLoading={uploading}
       loadingText={`Enviando... ${progress}%`}
+      noOverlay={noOverlay}
     >
       {form}
     </ModalWrapper>

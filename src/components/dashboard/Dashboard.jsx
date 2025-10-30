@@ -5,7 +5,7 @@ import Charts from './Charts';
 import { API } from '../../utils/api';
 import { formatCurrency, calculateIVA } from '../../utils/constants';
 
-export default function Dashboard({ onClose }) {
+export default function Dashboard({ onClose, noOverlay }) {
   const [metrics, setMetrics] = useState(null);
   const [chartData, setChartData] = useState(null);
   const [urgentRepairs, setUrgentRepairs] = useState([]);
@@ -56,7 +56,7 @@ export default function Dashboard({ onClose }) {
   ];
 
   return (
-    <ModalWrapper title="DASHBOARD" onClose={onClose}>
+    <ModalWrapper title="DASHBOARD" onClose={onClose} noOverlay={noOverlay}>
       <div className="space-y-6 max-h-96 overflow-y-auto custom-scroll">
         {/* Métricas principales */}
         <MetricCards metrics={metrics} loading={loading} />
