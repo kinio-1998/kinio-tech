@@ -57,7 +57,7 @@ export default function Dashboard({ onClose, noOverlay }) {
 
   return (
     <ModalWrapper title="DASHBOARD" onClose={onClose} noOverlay={noOverlay}>
-      <div className="space-y-6 max-h-96 overflow-y-auto custom-scroll">
+      <div className="space-y-6">
         {/* Métricas principales */}
         <MetricCards metrics={metrics} loading={loading} />
 

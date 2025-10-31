@@ -262,7 +262,7 @@ export default function ReparacionesList({ onClose, noOverlay }) {
 
   return (
     <ModalWrapper title="GESTIÓN DE REPARACIONES" onClose={onClose} noOverlay={noOverlay}>
-      <div className="space-y-4 max-h-96 overflow-y-auto custom-scroll">
+      <div className="space-y-4">
 
         {/* Lista principal de reparaciones */}
         <BaseList
@@ -276,7 +276,7 @@ export default function ReparacionesList({ onClose, noOverlay }) {
           searchPlaceholder="🔍 Buscar por folio, cliente, equipo o problema..."
           emptyMessage="No hay reparaciones registradas"
         />
-      </div>
+  </div>
 
       {/* Modal de detalle de reparación */}
       {showDetalleModal && selectedReparacion && (

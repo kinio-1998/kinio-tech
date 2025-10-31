@@ -1,6 +1,9 @@
 ﻿import { useState, useEffect } from "react";
 import ModalWrapper from "../modals/ModalWrapper";
 import ClienteDataForm from "../common/ClienteDataForm";
+import PresupuestoResumen from "../common/PresupuestoResumen";
+import ServicioSelector from "../common/ServicioSelector";
+import ComponentesGrid from "../common/ComponentesGrid";
 import { ESTADOS_REPARACION } from "../../utils/constants";
 
 // Simulación de servicios por categoría de equipo desde BD
@@ -131,6 +134,8 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
     equipo_marca: "",
     equipo_modelo: "",
     equipo_serie: "",
+    equipo_contrasena: "",
+    equipo_accesorios: "",
     problema: "",
     servicios_seleccionados: [],
     observaciones: "",
@@ -294,38 +299,15 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
     return errors;
   };
 
-  // Funciones para manejar el grid de componentes
-  const addRow = () => {
-    setItems((s) => [
-      ...s,
-      { id: Date.now() + Math.random(), concepto: "", cantidad: 1, precio: "" },
-    ]);
-  };
-
-  const removeRow = (id) => {
-    setItems((s) => s.filter((r) => r.id !== id));
-  };
-
-  const updateRow = (id, field, value) => {
-    setItems((s) =>
-      s.map((r) =>
-        r.id === id
-          ? { ...r, [field]: field === "cantidad" ? Number(value) : value }
-          : r
-      )
-    );
-  };
-
-  // Calcular total de componentes del grid
-  const calcularTotalComponentes = () => {
+  // Funciones auxiliares para cálculos internos del formulario (envío de datos)
+  const calcularTotalComponentesParaEnvio = () => {
     return items.reduce(
       (sum, it) => sum + (Number(it.cantidad) || 0) * (Number(it.precio) || 0),
       0
     );
   };
 
-  // Calcular precio total estimado de servicios
-  const calcularTotalServicios = () => {
+  const calcularTotalServiciosParaEnvio = () => {
     let total = 0;
     form.servicios_seleccionados.forEach(servicioId => {
       const servicio = serviciosDisponibles.find(s => s.id === servicioId);
@@ -334,29 +316,19 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
     return total;
   };
 
-  // Calcular precio total estimado
-  const calcularPrecioTotal = () => {
-    const totalServicios = calcularTotalServicios();
-    const totalComponentes = calcularTotalComponentes();
+  const calcularPrecioTotalParaEnvio = () => {
+    const totalServicios = calcularTotalServiciosParaEnvio();
+    const totalComponentes = calcularTotalComponentesParaEnvio();
     return totalServicios + totalComponentes;
   };
 
-  // Calcular anticipo según las reglas de negocio
-  const calcularAnticipo = () => {
-    // IDs de servicios que requieren componentes
-    const serviciosConComponentes = [1, 6, 42, 48]; // Armado de PC, Actualización de Componentes, Actualización de RAM, Actualización de Hardware
+  const calcularAnticipoParaEnvio = () => {
+    const serviciosConComponentes = [1, 6, 42, 48];
     const tieneServicioConComponentes = form.servicios_seleccionados.some(id => serviciosConComponentes.includes(id));
+    const totalComponentes = calcularTotalComponentesParaEnvio();
+    const totalGeneral = calcularPrecioTotalParaEnvio();
     
-    const totalComponentes = calcularTotalComponentes();
-    const totalGeneral = calcularPrecioTotal();
-
-    if (tieneServicioConComponentes) {
-      // Si hay servicios que requieren componentes: 100% del total de componentes únicamente
-      return totalComponentes;
-    } else {
-      // Si no hay servicios con componentes: 70% del total (servicios + componentes)
-      return totalGeneral * 0.7;
-    }
+    return tieneServicioConComponentes ? totalComponentes : totalGeneral * 0.7;
   };
 
   // Validar formulario
@@ -430,10 +402,10 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
         ...form,
         cliente: datosCliente,
         componentes: componentesValidos,
-        precio_servicios: calcularTotalServicios(),
-        precio_componentes: calcularTotalComponentes(),
-        precio_total: calcularPrecioTotal(),
-        anticipo_sugerido: calcularAnticipo(),
+        precio_servicios: calcularTotalServiciosParaEnvio(),
+        precio_componentes: calcularTotalComponentesParaEnvio(),
+        precio_total: calcularPrecioTotalParaEnvio(),
+        anticipo_sugerido: calcularAnticipoParaEnvio(),
         estado: REPAIR_STATES.PENDIENTE,
         fecha_ingreso: new Date().toISOString(),
         es_cliente_nuevo: esClienteNuevo
@@ -451,6 +423,8 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
         equipo_marca: "",
         equipo_modelo: "",
         equipo_serie: "",
+  equipo_contrasena: "",
+  equipo_accesorios: "",
         problema: "",
         servicios_seleccionados: [],
         observaciones: "",
@@ -568,35 +542,19 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
           SERVICIOS DISPONIBLES {form.equipo_tipo && `PARA ${form.equipo_tipo.toUpperCase()}`}
         </h3>
         
-        {!form.equipo_tipo ? (
-          <p className="text-yellow-300 text-xs sm:text-sm italic mb-2 sm:mb-4">Seleccione el tipo de equipo primero</p>
-        ) : serviciosDisponibles.length === 0 ? (
-          <p className="text-yellow-300 text-xs sm:text-sm italic mb-2 sm:mb-4">No hay servicios disponibles para este tipo de equipo</p>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3 flex-1 overflow-auto custom-scroll mb-2 sm:mb-4 min-h-0">
-            {serviciosDisponibles.map(servicio => (
-              <label
-                key={servicio.id}
-                className={`flex items-start gap-2 p-3 border rounded cursor-pointer transition-colors ${
-                  form.servicios_seleccionados.includes(servicio.id)
-                    ? 'border-green-500 bg-green-900 bg-opacity-30'
-                    : 'border-green-800 hover:bg-green-900 hover:bg-opacity-20'
-                }`}
-              >
-                <input
-                  type="checkbox"
-                  checked={form.servicios_seleccionados.includes(servicio.id)}
-                  onChange={() => handleServicioChange(servicio.id)}
-                  className="w-4 h-4 mt-0.5 flex-shrink-0"
-                />
-                <span className="text-white text-xs sm:text-sm">
-                  <span className="font-medium block">{servicio.nombre}</span>
-                  <span className="text-green-400">${servicio.precio}</span>
-                </span>
-              </label>
-            ))}
-          </div>
-        )}
+        <div className="flex-1 overflow-auto custom-scroll mb-2 sm:mb-4 min-h-0">
+          {!form.equipo_tipo ? (
+            <p className="text-yellow-300 text-xs sm:text-sm italic">Seleccione el tipo de equipo primero</p>
+          ) : (
+            <ServicioSelector
+              equipoTipo={form.equipo_tipo}
+              serviciosDisponibles={serviciosDisponibles}
+              serviciosSeleccionados={form.servicios_seleccionados}
+              onServicioChange={handleServicioChange}
+              formErrors={formErrors}
+            />
+          )}
+        </div>
 
         <div className="flex gap-2 justify-between items-center flex-shrink-0 flex-wrap">
           <span className="text-green-300 text-xs sm:text-sm">
@@ -628,12 +586,11 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
 
   // Formulario principal
   const reparacionForm = (
-    <div className="max-h-[60vh] overflow-auto custom-scroll">
-      <form
-        id="form-reparacion"
-        onSubmit={handleSubmit}
-        className="bg-black border-2 border-green-500 rounded-md p-2 sm:p-3 space-y-2 sm:space-y-3"
-      >
+    <form
+      id="form-reparacion"
+      onSubmit={handleSubmit}
+      className="bg-black border-2 border-green-500 rounded-md p-2 sm:p-3 space-y-2 sm:space-y-3"
+    >
         {/* Datos del cliente */}
         <ClienteDataForm
           form={form}
@@ -649,7 +606,7 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
       {/* Formulario en 3 columnas - Responsivo */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-2 sm:gap-4 mb-2 sm:mb-3">
         
-        {/* COLUMNA 1: DATOS DEL EQUIPO */}
+  {/* COLUMNA 1: DATOS DEL EQUIPO */}
         <div className="space-y-1 sm:space-y-2">
           <h3 className="text-green-300 font-bold text-xs sm:text-sm mb-1 sm:mb-2">DATOS DEL EQUIPO</h3>
           
@@ -712,6 +669,30 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
               className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
             />
           </label>
+
+          <label className="flex flex-col text-green-300 gap-1">
+            <span className="text-xs">CONTRASEÑA / PIN (opcional):</span>
+            <input
+              type="text"
+              name="equipo_contrasena"
+              value={form.equipo_contrasena}
+              onChange={handleChange}
+              className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
+              placeholder="Clave, PIN o patrón"
+            />
+          </label>
+
+          <label className="flex flex-col text-green-300 gap-1">
+            <span className="text-xs">ACCESORIOS RECIBIDOS (opcional):</span>
+            <input
+              type="text"
+              name="equipo_accesorios"
+              value={form.equipo_accesorios}
+              onChange={handleChange}
+              className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
+              placeholder="Cargador, funda, cable, etc."
+            />
+          </label>
         </div>
 
         {/* COLUMNA 2: DATOS DEL EQUIPO O PROBLEMA */}
@@ -720,137 +701,10 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
             {esClienteNuevo ? 'DATOS DEL EQUIPO' : 'PROBLEMA Y SERVICIOS'}
           </h3>
           
-          {esClienteNuevo ? (
-            <>
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">TIPO:</span>
-                <div className="relative">
-                  <select
-                    name="equipo_tipo"
-                    value={form.equipo_tipo}
-                    onChange={handleChange}
-                    className={`bg-black border ${formErrors.equipo_tipo ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-xs`}
-                  >
-                    <option value="">Seleccione tipo</option>
-                    <option value="Desktop">Desktop</option>
-                    <option value="Laptop">Laptop</option>
-                    <option value="Celular">Celular</option>
-                    <option value="Tablet">Tablet</option>
-                    <option value="All-in-One">All-in-One</option>
-                    <option value="Servidor">Servidor</option>
-                  </select>
-                  {formErrors.equipo_tipo && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </label>
-
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">MARCA:</span>
-                <input
-                  type="text"
-                  name="equipo_marca"
-                  value={form.equipo_marca}
-                  onChange={handleChange}
-                  className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
-                />
-              </label>
-
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">MODELO:</span>
-                <input
-                  type="text"
-                  name="equipo_modelo"
-                  value={form.equipo_modelo}
-                  onChange={handleChange}
-                  className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
-                />
-              </label>
-
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">SERIE:</span>
-                <input
-                  type="text"
-                  name="equipo_serie"
-                  value={form.equipo_serie}
-                  onChange={handleChange}
-                  className="bg-black border border-green-700 text-white px-2 py-1 w-full text-xs"
-                />
-              </label>
-            </>
-          ) : (
-            <>
-              <label className="flex flex-col text-green-300 gap-1">
-                <span className="text-xs">PROBLEMA REPORTADO:</span>
-                <div className="relative">
-                  <textarea
-                    name="problema"
-                    value={form.problema}
-                    onChange={handleChange}
-                    rows={3}
-                    className={`bg-black border ${formErrors.problema ? 'border-red-600' : 'border-green-700'} text-white px-1 sm:px-2 py-1 w-full text-xs resize-none`}
-                    placeholder="Describa el problema del equipo"
-                  />
-                  {formErrors.problema && (
-                    <div className="absolute right-1 top-1 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                    </div>
-                  )}
-                </div>
-              </label>
-
-              {/* Servicios */}
-              <div className="space-y-1">
-                <div className="flex justify-between items-center">
-                  <span className="text-green-300 text-xs font-bold">SERVICIOS:</span>
-                  <button
-                    type="button"
-                    onClick={() => setMostrarModalServicios(true)}
-                    className={`px-2 py-1 rounded text-xs ${
-                      !form.equipo_tipo 
-                        ? 'bg-gray-600 text-gray-400 cursor-not-allowed' 
-                        : 'bg-green-700 text-white hover:bg-green-600'
-                    }`}
-                    disabled={!form.equipo_tipo}
-                    title={!form.equipo_tipo ? "Seleccione el tipo de equipo primero" : "Seleccionar servicios"}
-                  >
-                    SELECCIONAR
-                  </button>
-                </div>
-                
-                {!form.equipo_tipo && (
-                  <p className="text-yellow-400 text-xs italic">Seleccione el tipo de equipo para ver servicios disponibles</p>
-                )}
-                
-                {formErrors.servicios_seleccionados && (
-                  <p className="text-red-400 text-xs">{formErrors.servicios_seleccionados}</p>
-                )}
-                
-                {form.servicios_seleccionados.length > 0 && (
-                  <div className="bg-gray-900 border border-green-800 rounded p-1 max-h-16 overflow-y-auto">
-                    <p className="text-green-300 text-xs mb-1">Seleccionados ({form.servicios_seleccionados.length}):</p>
-                    {form.servicios_seleccionados.slice(0, 3).map(servicioId => {
-                      const servicio = serviciosDisponibles.find(s => s.id === servicioId);
-                      return servicio ? (
-                        <div key={servicioId} className="text-white text-xs flex justify-between">
-                          <span className="truncate">{servicio.nombre}</span>
-                          <span className="text-green-400">${servicio.precio}</span>
-                        </div>
-                      ) : null;
-                    })}
-                    {form.servicios_seleccionados.length > 3 && (
-                      <div className="text-yellow-300 text-xs">+{form.servicios_seleccionados.length - 3} más...</div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </>
+          {esClienteNuevo && (
+            <div className="text-gray-400 text-xs">
+              Use la columna izquierda para registrar los datos del equipo.
+            </div>
           )}
         </div>
 
@@ -963,143 +817,25 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
 
       {/* Grid de Componentes (solo si se selecciona Armado de PC) */}
       {mostrarComponentes && (
-        <div className="mb-2 sm:mb-3 bg-black border border-green-700 rounded p-1 sm:p-2">
-          <h4 className="text-green-300 font-bold text-xs sm:text-sm mb-1 sm:mb-2">COMPONENTES REQUERIDOS</h4>
-          
-          <div className="grid grid-cols-12 gap-1 sm:gap-2 text-xs text-green-300 border-b border-green-700 pb-1 mb-1 sm:pb-2 sm:mb-2">
-            <div className="col-span-6 truncate">CONCEPTO</div>
-            <div className="col-span-2 text-center truncate">CANTIDAD</div>
-            <div className="col-span-3 text-center truncate">PRECIO</div>
-            <div className="col-span-1" />
-          </div>
-
-          <div className={items.length >= 3 ? "space-y-1 sm:space-y-2 max-h-20 sm:max-h-24 md:max-h-28 overflow-auto custom-scroll" : "space-y-1 sm:space-y-2"}>
-            {items.map((it, index) => (
-              <div
-                key={it.id}
-                className="grid grid-cols-12 gap-1 sm:gap-2 items-center text-white text-xs"
-              >
-                <div className="col-span-6 relative">
-                  <input
-                    value={it.concepto}
-                    onChange={(e) => updateRow(it.id, "concepto", e.target.value)}
-                    placeholder="Concepto"
-                    className={`w-full bg-black border ${itemErrors[index]?.concepto ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-xs`}
-                  />
-                  {itemErrors[index]?.concepto && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
-                        {itemErrors[index].concepto}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-span-2 relative">
-                  <input
-                    type="number"
-                    value={it.cantidad}
-                    min="1"
-                    onChange={(e) => updateRow(it.id, "cantidad", e.target.value)}
-                    className={`w-full bg-black border ${itemErrors[index]?.cantidad ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-center text-xs`}
-                  />
-                  {itemErrors[index]?.cantidad && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
-                        {itemErrors[index].cantidad}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-span-3 relative">
-                  <input
-                    type="number"
-                    value={it.precio}
-                    min="0"
-                    step="0.01"
-                    onChange={(e) => updateRow(it.id, "precio", e.target.value)}
-                    className={`w-full bg-black border ${itemErrors[index]?.precio ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-right text-xs`}
-                  />
-                  {itemErrors[index]?.precio && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:translate-y-0 transition-all z-50">
-                        {itemErrors[index].precio}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeRow(it.id)}
-                  className="col-span-1 bg-red-800 text-white px-1 py-1 rounded text-xs"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-1 sm:mt-2 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={addRow}
-              className="bg-green-700 text-white px-2 py-1 rounded text-xs"
-            >
-              AGREGAR ITEM
-            </button>
-            <div className="text-white text-xs">
-              Total Componentes: {" "}
-              <span className="text-green-300 font-bold">${calcularTotalComponentes().toFixed(2)}</span>
-            </div>
-          </div>
+        <div className="mb-2 sm:mb-3">
+          <ComponentesGrid
+            items={items}
+            onItemsChange={setItems}
+            title="COMPONENTES REQUERIDOS"
+            variant="reparacion"
+            itemErrors={itemErrors}
+          />
         </div>
       )}
 
-      {/* Totales finales - Siempre al final de todo */}
-      <div className="mt-2 sm:mt-3 pt-2 border-t border-green-700">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs">
-          <div className="space-y-1">
-            <div className="flex justify-between">
-              <span className="text-green-300">Servicios:</span>
-              <span className="text-white">${calcularTotalServicios().toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-green-300">Componentes:</span>
-              <span className="text-white">${calcularTotalComponentes().toFixed(2)}</span>
-            </div>
-            <div className="flex justify-between font-bold border-t border-green-800 pt-1">
-              <span className="text-green-300">PRECIO TOTAL:</span>
-              <span className="text-green-400">${calcularPrecioTotal().toFixed(2)}</span>
-            </div>
-          </div>
-          
-          <div className="space-y-1">
-            <div className="flex justify-between font-bold">
-              <span className="text-green-300">ANTICIPO SUGERIDO:</span>
-              <span className="text-yellow-400">${calcularAnticipo().toFixed(2)}</span>
-            </div>
-            {(() => {
-              const serviciosConComponentes = [1, 6, 42, 48];
-              const tieneServicioConComponentes = form.servicios_seleccionados.some(id => serviciosConComponentes.includes(id));
-              return tieneServicioConComponentes ? (
-                <p className="text-xs text-gray-400">100% de componentes</p>
-              ) : (
-                <p className="text-xs text-gray-400">70% del total</p>
-              );
-            })()}
-          </div>
-        </div>
-      </div>
+      {/* Resumen de presupuesto - Componente separado */}
+      <PresupuestoResumen 
+        serviciosSeleccionados={form.servicios_seleccionados}
+        serviciosDisponibles={serviciosDisponibles}
+        componentesItems={items}
+        mostrarComponentes={mostrarComponentes}
+      />
       </form>
-    </div>
   );
 
   return (
@@ -1109,7 +845,7 @@ export default function NuevaReparacionForm({ onClose, noOverlay }) {
         onClose={onClose}
         id={result ? undefined : "form-reparacion"}
         hideDefaultButtons={!!result}
-        className="w-full max-w-7xl h-full max-h-[95vh]"
+        className="w-full max-w-7xl max-h-[90vh]"
         noOverlay={noOverlay}
       >
         {result ? resultContent : reparacionForm}

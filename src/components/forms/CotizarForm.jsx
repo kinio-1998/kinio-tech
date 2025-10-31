@@ -1,6 +1,9 @@
 import { useState, useEffect } from "react";
 import ModalWrapper from "../modals/ModalWrapper";
 import ClienteDataForm from "../common/ClienteDataForm";
+import ServicioSelector from "../common/ServicioSelector";
+import PresupuestoResumen from "../common/PresupuestoResumen";
+import ComponentesGrid from "../common/ComponentesGrid";
 
 // Simulación de servicios por categoría de equipo desde BD
 const SERVICIOS_POR_CATEGORIA = {
@@ -111,7 +114,6 @@ const COMPONENTES_SIMULADOS = {
 };
 
 export default function Cotizar({ onClose, noOverlay }) {
-  const [purchased, setPurchased] = useState(true);
   const [form, setForm] = useState({
     nombre: "",
     correo: "",
@@ -123,7 +125,7 @@ export default function Cotizar({ onClose, noOverlay }) {
     componentes: []
   });
   const [items, setItems] = useState([
-    { id: Date.now(), concepto: "", cantidad: 1, precio: "" },
+    { id: Date.now(), nombre: "", marca: "", modelo: "", cantidad: 1, precio: "" },
   ]);
   
   // Estados para la funcionalidad de servicios y componentes
@@ -242,8 +244,8 @@ export default function Cotizar({ onClose, noOverlay }) {
     if (!form.equipo_tipo) errors.equipo_tipo = "Debe seleccionar un tipo de equipo";
     if (form.servicios_seleccionados.length === 0) errors.servicios_seleccionados = "Debe seleccionar al menos un servicio";
 
-    // Validar items cuando se requieren componentes o cuando purchased es true
-    if (purchased || mostrarComponentes) {
+    // Validar items cuando se requieren componentes
+    if (mostrarComponentes) {
       const itemErrors = {};
       let hasValidItem = false;
 
@@ -264,7 +266,7 @@ export default function Cotizar({ onClose, noOverlay }) {
         return;
       }
 
-      if (purchased && !hasValidItem) {
+      if (mostrarComponentes && !hasValidItem) {
         setStatusMsg("❌ Debe agregar al menos 1 ítem con todos los campos válidos");
         setFormErrors({ ...errors, items: itemErrors });
         setItemErrors(itemErrors);
@@ -307,14 +309,14 @@ export default function Cotizar({ onClose, noOverlay }) {
                 price: componente?.precio 
               };
             }),
-            items: (purchased || mostrarComponentes)
+            items: mostrarComponentes
               ? items
                   .filter((it) => it.concepto.trim() && (Number(it.cantidad) > 0) && (Number(it.precio) > 0))
                   .map((it) => ({ description: it.concepto, qty: it.cantidad, price: Number(it.precio) }))
               : [],
-            total_services: calcularTotalServicios(),
-            total_components: mostrarComponentes ? calcularTotalComponentes() : 0,
-            total_general: calcularTotalGeneral(),
+            total_services: calcularTotalServiciosParaEnvio(),
+            total_components: mostrarComponentes ? calcularTotalComponentesParaEnvio() : 0,
+            total_general: calcularTotalGeneralParaEnvio(),
           }),
         }
       );
@@ -345,52 +347,26 @@ export default function Cotizar({ onClose, noOverlay }) {
     }
   };
 
-  const addRow = () => {
-    setItems((s) => [
-      ...s,
-      { id: Date.now() + Math.random(), concepto: "", cantidad: 1, precio: "" },
-    ]);
-  };
-  const removeRow = (id) => {
-    setItems((s) => s.filter((r) => r.id !== id));
-  };
-  const updateRow = (id, field, value) => {
-    setItems((s) =>
-      s.map((r) =>
-        r.id === id
-          ? { ...r, [field]: field === "cantidad" ? Number(value) : value }
-          : r
-      )
-    );
-  };
-
-  // Calcular total de componentes del grid
-  const calcularTotalComponentes = () => {
+  // Funciones auxiliares para cálculos internos del formulario (envío de datos)
+  const calcularTotalComponentesParaEnvio = () => {
     return items.reduce(
       (sum, it) => sum + (Number(it.cantidad) || 0) * (Number(it.precio) || 0),
       0
     );
   };
 
-  // Calcular total de servicios seleccionados
-  const calcularTotalServicios = () => {
+  const calcularTotalServiciosParaEnvio = () => {
     return form.servicios_seleccionados.reduce((total, servicioId) => {
       const servicio = serviciosDisponibles.find(s => s.id === servicioId);
       return total + (servicio ? servicio.precio : 0);
     }, 0);
   };
 
-  // Calcular total general
-  const calcularTotalGeneral = () => {
-    const totalServicios = calcularTotalServicios();
-    const totalComponentes = mostrarComponentes ? calcularTotalComponentes() : 0;
+  const calcularTotalGeneralParaEnvio = () => {
+    const totalServicios = calcularTotalServiciosParaEnvio();
+    const totalComponentes = mostrarComponentes ? calcularTotalComponentesParaEnvio() : 0;
     return totalServicios + totalComponentes;
   };
-
-  const total = items.reduce(
-    (sum, it) => sum + (Number(it.cantidad) || 0) * (Number(it.precio) || 0),
-    0
-  );
   
   const resultContent = (
     <div className="bg-black border-2 border-green-500 rounded-md p-6 text-center space-y-4">
@@ -436,7 +412,7 @@ export default function Cotizar({ onClose, noOverlay }) {
     <form
       id="form-cotizar"
       onSubmit={handleSubmit}
-      className="bg-black border-2 border-green-500 rounded-md p-4"
+      className="bg-black border-2 border-green-500 rounded-md p-1 space-y-1"
     >
       {/* datos cliente en grid compacto */}
       <ClienteDataForm
@@ -452,314 +428,39 @@ export default function Cotizar({ onClose, noOverlay }) {
       />
 
       {/* Servicios y componentes */}
-      <div className="space-y-4">
-        {/* Servicios Disponibles */}
-        {form.equipo_tipo && serviciosDisponibles.length > 0 && (
-          <div className="space-y-2">
-            <label className="text-green-300 text-sm sm:text-base font-semibold">
-              SERVICIOS DISPONIBLES:
-              {formErrors.servicios_seleccionados && (
-                <span className="text-red-400 text-xs ml-2">
-                  {formErrors.servicios_seleccionados}
-                </span>
-              )}
-            </label>
-            <div className="bg-black border-2 border-green-700 rounded p-3 max-h-48 overflow-y-auto custom-scroll">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                {serviciosDisponibles.map((servicio) => (
-                  <label
-                    key={servicio.id}
-                    className="flex flex-col gap-2 text-white hover:bg-green-900/20 p-2 rounded cursor-pointer border border-green-800"
-                  >
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="checkbox"
-                        checked={form.servicios_seleccionados.includes(servicio.id)}
-                        onChange={() => handleServicioChange(servicio.id)}
-                        className="w-4 h-4 text-green-600 bg-black border-green-400 rounded focus:ring-green-500 focus:ring-2"
-                      />
-                      <span className="text-green-400 font-mono text-sm font-bold">
-                        ${servicio.precio}
-                      </span>
-                    </div>
-                    <span className="text-sm leading-tight">
-                      {servicio.nombre}
-                    </span>
-                  </label>
-                ))}
-              </div>
-            </div>
-          </div>
-        )}
+      <div className="space-y-1">
+        {/* Servicios Disponibles - Componente separado */}
+        <ServicioSelector 
+          equipoTipo={form.equipo_tipo}
+          serviciosDisponibles={serviciosDisponibles}
+          serviciosSeleccionados={form.servicios_seleccionados}
+          onServicioChange={handleServicioChange}
+          formErrors={formErrors}
+        />
 
-        {/* Resumen de servicios seleccionados */}
-        {form.servicios_seleccionados.length > 0 && (
-          <div className="bg-green-900/20 border-2 border-green-600 rounded p-3">
-            <h4 className="text-green-300 font-semibold mb-2">Servicios Seleccionados:</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mb-3">
-              {form.servicios_seleccionados.map(servicioId => {
-                const servicio = serviciosDisponibles.find(s => s.id === servicioId);
-                return servicio ? (
-                  <div key={servicioId} className="bg-black/30 border border-green-700 rounded p-2">
-                    <div className="text-white text-xs font-medium leading-tight mb-1">
-                      {servicio.nombre}
-                    </div>
-                    <div className="text-green-400 font-mono text-sm font-bold">
-                      ${servicio.precio}
-                    </div>
-                  </div>
-                ) : null;
-              })}
-            </div>
-            <div className="border-t border-green-600 pt-2 mt-2">
-              <div className="flex justify-between font-semibold">
-                <span className="text-green-300">Total Servicios:</span>
-                <span className="text-green-400">${calcularTotalServicios()}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Grid de componentes cuando se selecciona "Armado de PC" u otros servicios que requieren componentes */}
+        {/* Grid de componentes cuando se seleccionan servicios que requieren componentes */}
         {mostrarComponentes && (
-          <div className="space-y-3">
-            <label className="text-green-300 text-sm sm:text-base font-semibold">
-              COMPONENTES PARA ARMADO DE PC:
-            </label>
-            
-            {/* Selectores de componentes por categoría */}
-            <div className="bg-black border-2 border-green-700 rounded p-3 space-y-3">
-              {Object.entries(componentesDisponibles).map(([categoria, componentes]) => {
-                const componenteSeleccionado = form.componentes.find(c => c.categoria === categoria);
-                return (
-                  <div key={categoria} className="space-y-1">
-                    <label className="text-green-300 text-sm font-medium">
-                      {categoria}:
-                    </label>
-                    <select
-                      value={componenteSeleccionado?.componenteId || ""}
-                      onChange={(e) => handleComponenteChange(categoria, e.target.value ? parseInt(e.target.value) : null)}
-                      className="bg-black border-2 border-green-700 text-white px-2 py-1 w-full text-sm"
-                    >
-                      <option value="">Seleccionar {categoria}</option>
-                      {componentes.map(comp => (
-                        <option key={comp.id} value={comp.id}>
-                          {comp.nombre} - ${comp.precio}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Resumen de componentes seleccionados */}
-            {form.componentes.length > 0 && (
-              <div className="bg-blue-900/20 border-2 border-blue-600 rounded p-3">
-                <h4 className="text-blue-300 font-semibold mb-2">Componentes Seleccionados:</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
-                  {form.componentes.map((comp, index) => {
-                    const categoria = componentesDisponibles[comp.categoria];
-                    const componente = categoria?.find(c => c.id === comp.componenteId);
-                    return componente ? (
-                      <div key={index} className="bg-black/30 border border-blue-700 rounded p-2">
-                        <div className="text-blue-300 text-xs font-medium mb-1">
-                          {comp.categoria}
-                        </div>
-                        <div className="text-white text-xs leading-tight mb-1">
-                          {componente.nombre}
-                        </div>
-                        <div className="text-blue-400 font-mono text-sm font-bold">
-                          ${componente.precio}
-                        </div>
-                      </div>
-                    ) : null;
-                  })}
-                </div>
-              </div>
-            )}
-          </div>
+          <ComponentesGrid
+            items={items}
+            onItemsChange={setItems}
+            title="COMPONENTES COMPRADOS:"
+            variant="cotizar"
+            itemErrors={itemErrors}
+            onErrorsChange={setItemErrors}
+          />
         )}
 
-        {/* Total general */}
+        {/* Resumen de presupuesto */}
         {(form.servicios_seleccionados.length > 0 || mostrarComponentes) && (
-          <div className="bg-gray-900/50 border-2 border-gray-600 rounded p-3">
-            <div className="space-y-1 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-300">Subtotal Servicios:</span>
-                <span className="text-gray-400">${calcularTotalServicios()}</span>
-              </div>
-              {mostrarComponentes && (
-                <div className="flex justify-between">
-                  <span className="text-gray-300">Subtotal Componentes:</span>
-                  <span className="text-gray-400">${calcularTotalComponentes()}</span>
-                </div>
-              )}
-              <div className="border-t border-gray-600 pt-2 mt-2">
-                <div className="flex justify-between font-bold text-lg">
-                  <span className="text-white">TOTAL GENERAL:</span>
-                  <span className="text-green-400">${calcularTotalGeneral()}</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <PresupuestoResumen 
+            serviciosSeleccionados={form.servicios_seleccionados}
+            serviciosDisponibles={serviciosDisponibles}
+            componentesItems={items}
+            mostrarComponentes={mostrarComponentes}
+          />
         )}
       </div>
 
-      {/* Campo Legacy para compatibilidad */}
-      <div className="mt-4">
-        <label className="flex flex-col sm:flex-row sm:items-center sm:justify-between text-green-300 gap-1">
-          <span className="text-sm sm:text-base">SERVICIO LEGACY:</span>
-          <div className="relative w-full sm:w-56">
-            <select
-              name="servicio"
-              value={form.servicio}
-              onChange={handleChange}
-              className={`bg-black border-2 ${formErrors.servicio ? 'border-red-600' : 'border-green-700'} text-white px-2 py-1 w-full text-sm sm:text-base`}
-            >
-            <option value="">Seleccione servicio</option>
-            <option value="1">Armado De PC</option>
-            <option value="2">Cambio de Pasta</option>
-            <option value="3">Diagnóstico</option>
-            <option value="4">Formateo</option>
-            <option value="5">Limpieza Física</option>
-            <option value="6">Limpieza y Cambio de Pasta</option>
-            <option value="7">Recuperación de Datos</option>
-            <option value="8">Reemplazo de Disco Duro</option>
-            <option value="9">Reemplazo de RAM</option>
-            </select>
-            {formErrors.servicio && (
-              <div className="absolute right-2 top-1/2 -translate-y-1/2 group">
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                </svg>
-                <div className="pointer-events-none absolute -top-12 right-0 w-64 bg-red-900 border-l-2 border-red-500 text-sm text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
-                  {formErrors.servicio}
-                </div>
-              </div>
-            )}
-          </div>
-        </label>
-      </div>
-
-      {/* switch que controla la visibilidad del grid (debe quedar FUERA del grid) */}
-      <div className="flex items-center justify-between mt-2">
-        <div className="flex items-center gap-3">
-          <span className="text-green-300">¿Se compró algo?</span>
-          <label className="relative inline-flex items-center cursor-pointer ml-2">
-            <input
-              type="checkbox"
-              checked={purchased}
-              onChange={(e) => setPurchased(e.target.checked)}
-              className="sr-only peer"
-              aria-label="Se compró algo"
-            />
-            <div className="w-11 h-6 bg-gray-800 rounded-full peer-checked:bg-green-500 transition-colors" />
-            <div className="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5" />
-          </label>
-        </div>
-        <small className="text-xs text-green-400">Muestra/oculta la tabla de ítems</small>
-      </div>
-
-      {/* grid principal: se oculta/visualiza COMPLETO */}
-      {purchased ? (
-        <div className="mt-2 bg-black border-2 border-green-700 rounded-sm p-2">
-          <div className="grid grid-cols-12 gap-1 sm:gap-2 text-xs sm:text-sm text-green-300 border-b border-green-700 pb-2 mb-2">
-            <div className="col-span-6 truncate">CONCEPTO</div>
-            <div className="col-span-2 text-center truncate">CANTIDAD</div>
-            <div className="col-span-3 text-center truncate">PRECIO</div>
-            <div className="col-span-1" />
-          </div>
-
-          <div className={items.length >= 3 ? "space-y-2 max-h-24 md:max-h-28 overflow-auto custom-scroll" : "space-y-2"}>
-            {items.map((it, index) => (
-              <div
-                key={it.id}
-                className="grid grid-cols-12 gap-1 sm:gap-2 items-center text-white text-xs sm:text-sm"
-              >
-                <div className="col-span-6 relative">
-                  <input
-                    value={it.concepto}
-                    onChange={(e) => updateRow(it.id, "concepto", e.target.value)}
-                    placeholder="Concepto"
-                    className={`w-full bg-black border ${itemErrors[index]?.concepto ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-xs sm:text-sm`}
-                  />
-                  {itemErrors[index]?.concepto && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
-                        {itemErrors[index].concepto}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-span-2 relative">
-                  <input
-                    type="number"
-                    value={it.cantidad}
-                    min="1"
-                    onChange={(e) => updateRow(it.id, "cantidad", e.target.value)}
-                    className={`w-full bg-black border ${itemErrors[index]?.cantidad ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-center text-xs sm:text-sm`}
-                  />
-                  {itemErrors[index]?.cantidad && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
-                        {itemErrors[index].cantidad}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <div className="col-span-3 relative">
-                  <input
-                    type="number"
-                    value={it.precio}
-                    min="0"
-                    step="0.01"
-                    onChange={(e) => updateRow(it.id, "precio", e.target.value)}
-                    className={`w-full bg-black border ${itemErrors[index]?.precio ? 'border-red-600' : 'border-green-800'} px-1 sm:px-2 py-1 text-white text-right text-xs sm:text-sm`}
-                  />
-                  {itemErrors[index]?.precio && (
-                    <div className="absolute right-1 top-1/2 -translate-y-1/2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-500" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                      </svg>
-                      <div className="pointer-events-none absolute -top-16 right-0 w-48 bg-red-900 border-l-2 border-red-500 text-xs text-white p-2 rounded shadow-lg opacity-0 translate-y-1 group-hover:opacity-100 group-hover:translate-y-0 transition-all z-50">
-                        {itemErrors[index].precio}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => removeRow(it.id)}
-                  className="col-span-1 bg-red-800 text-white px-2 py-1 rounded"
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
-          </div>
-
-          <div className="mt-2 flex items-center justify-between">
-            <button
-              type="button"
-              onClick={addRow}
-              className="bg-green-700 text-white px-3 py-1 rounded-full"
-            >
-              AGREGAR ITEM
-            </button>
-            <div className="text-white">
-              Total: {" "}
-              <span className="text-green-300 font-bold">${total.toFixed(2)}</span>
-            </div>
-          </div>
-        </div>
-      ) : null}
     </form>
   );
 
@@ -769,6 +470,7 @@ export default function Cotizar({ onClose, noOverlay }) {
       onClose={onClose} 
       id={result ? undefined : "form-cotizar"}
       hideDefaultButtons={!!result}
+      className="w-full max-w-4xl"
       noOverlay={noOverlay}
     >
       {result ? resultContent : cotizarForm}

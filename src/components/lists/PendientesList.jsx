@@ -14,8 +14,7 @@ export default function Pendientes({ onClose, noOverlay }) {
   };
 
   const pendientesContent = (
-    <div className="h-full overflow-auto custom-scroll">
-      <div className="bg-black border-2 border-green-500 rounded-md p-2 sm:p-3 space-y-2">
+    <div className="bg-black border-2 border-green-500 rounded-md p-2 sm:p-3 space-y-2">
         {items.map((it) => (
           <div key={it.id} className="flex items-center justify-between p-2 bg-gray-900 bg-opacity-30 rounded border border-green-800">
             <div>
@@ -34,7 +33,6 @@ export default function Pendientes({ onClose, noOverlay }) {
             </div>
           </div>
         ))}
-      </div>
     </div>
   );
 
