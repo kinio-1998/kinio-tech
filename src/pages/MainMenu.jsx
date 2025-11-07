@@ -1,6 +1,4 @@
 import { useState, useEffect } from "react";
-import ConsultarModal from "../components/modals/ConsultarModal";
-import EntregarModal from "../components/modals/EntregarModal";
 import RegistrarForm from "../components/forms/RegistrarForm";
 import CotizarForm from "../components/forms/CotizarForm";
 import PendientesList from "../components/lists/PendientesList";
@@ -15,7 +13,7 @@ import { botones } from "../obj/botones";
 
 export default function App() {
   // single modal id state
-  const [activeModal, setActiveModal] = useState(null); // values: 'consultar','entregar','registrar','cotizar','pendientes' | null
+  const [activeModal, setActiveModal] = useState(null); // values: 'registrar','cotizar','pendientes','publicar', etc. | null
 
   useEffect(() => {
     document.body.style.overflow = activeModal ? "hidden" : "";
@@ -131,8 +129,6 @@ export default function App() {
       {activeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-60 p-2 sm:p-4" onClick={() => setActiveModal(null)}>
           <div className="bg-black rounded-lg border-2 border-green-600 w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-3xl xl:max-w-5xl 2xl:max-w-7xl text-white max-h-[95vh] overflow-hidden p-2 sm:p-4" role="dialog" aria-modal="true" onClick={(e) => e.stopPropagation()}>
-            {activeModal === "consultar" && <ConsultarModal onClose={() => setActiveModal(null)} noOverlay={true} />}
-            {activeModal === "entregar" && <EntregarModal onClose={() => setActiveModal(null)} noOverlay={true} />}
             {activeModal === "registrar" && <RegistrarForm onClose={() => setActiveModal(null)} noOverlay={true} />}
             {activeModal === "cotizar" && <CotizarForm onClose={() => setActiveModal(null)} noOverlay={true} />}
             {activeModal === "pendientes" && <PendientesList onClose={() => setActiveModal(null)} noOverlay={true} />}

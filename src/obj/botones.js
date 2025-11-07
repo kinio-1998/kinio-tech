@@ -21,13 +21,6 @@ export const botones = [
     modal: "clientes",
   },
   {
-    id: "consultar",
-    label: "CONSULTAR",
-    clases: "absolute translate-x-[140px] flex items-center justify-center border-2 border-green-600 text-green-600 font-bold transform rotate-45 w-52 h-52 bg-black hover:bg-green-300 hover:text-white",
-    span: "-rotate-45 text-xl justify-end pl-5",
-    modal: "consultar",
-  },
-  {
     id: "pendientes",
     label: "REPARACIONES",
     clases: "absolute translate-y-[140px] flex items-center justify-center border-2 border-green-600 text-green-600 font-bold transform rotate-45 w-52 h-52 bg-black hover:bg-green-300 hover:text-white z-10",
@@ -42,11 +35,11 @@ export const botones = [
     modal: "cotizar",
   },
   {
-    id: "entregar",
-    label: "ENTREGAR",
-    clases: "absolute -translate-y-[140px] flex items-center justify-center border-2 border-green-600 text-green-600 font-bold transform rotate-45 w-52 h-52 bg-black hover:bg-green-300 hover:text-white z-10",
-    span: "-rotate-45 text-xl ",
-    modal: "entregar",
+    id: "publicar",
+    label: "PUBLICAR",
+    clases: "absolute translate-x-[140px] flex items-center justify-center border-2 border-green-600 text-green-600 font-bold transform rotate-45 w-52 h-52 bg-black hover:bg-green-300 hover:text-white transition-colors",
+    span: "-rotate-45 text-xl",
+    modal: "publicar",
   },
   {
     id: "registrar",

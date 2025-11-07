@@ -1,5 +1,8 @@
 // Configuración base para las APIs
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://kiniotech-backend.onrender.com/api';
+// Usa variable de entorno VITE_API_URL si está definida; fallback a localhost
+// Ejemplo de .env.local: VITE_API_URL=http://localhost:8000/api
+const API_BASE_URL = (import.meta?.env?.VITE_API_URL && String(import.meta.env.VITE_API_URL).trim())
+  || 'http://localhost:8000/api';
 
 /**
  * Función utilitaria para hacer requests a la API
@@ -89,6 +92,11 @@ export const API = {
 
   // Marketing
   marketing: {
-    publish: (data) => apiRequest('/marketing/publicar', { method: 'POST', body: JSON.stringify(data) }),
+    publish: (formData) => fetch(`${API_BASE_URL}/publicar`, { method: 'POST', body: formData })
+      .then(async r => ({ success: r.ok, data: await r.json(), status: r.status }))
+      .catch(e => ({ success: false, error: e.message })),
+    list: () => apiRequest('/publicaciones'),
+    reelPrompt: (payload) => apiRequest('/reel_prompt', { method: 'POST', body: JSON.stringify(payload) }),
+    generateVideo: (payload) => apiRequest('/subir_reel', { method: 'POST', body: JSON.stringify(payload) }),
   },
 };
